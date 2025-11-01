@@ -1,0 +1,15 @@
+sequenceDiagram
+    participant UI as Svelte Frontend
+    participant API as Go Backend
+    participant DB as PostgreSQL
+    participant AI as Python Forecasting Engine
+
+    UI->>API: GET /predict/{field_id}
+    API->>DB: Запит історичних даних (метрики)
+    DB-->>API: Дані (температура, вологість)
+    API->>AI: POST /analyze (JSON з даними)
+    Note over AI: Застосування нейромережі<br/>(згідно з Джерелом №1)
+    AI-->>API: Результат (Ймовірність шкідника)
+    API->>DB: Збереження прогнозу
+    API-->>UI: 200 OK (JSON з прогнозом)
+    UI-->>UI: Відображення графіку ризиків

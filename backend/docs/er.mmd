@@ -1,0 +1,57 @@
+erDiagram
+    USER ||--o{ FIELD : manages
+    CROP ||--o{ FIELD : grows_on
+    FIELD ||--o{ SENSOR : contains
+    SENSOR ||--o{ METRIC : records
+    FIELD ||--o{ PREDICTION : generates
+    PEST ||--o{ PREDICTION : targets
+
+    USER {
+        int id PK
+        string name
+        string email
+        string role
+    }
+
+    FIELD {
+        int id PK
+        string name
+        float area
+        string location
+        int crop_id FK
+    }
+
+    CROP {
+        int id PK
+        string name
+        string variety
+    }
+
+    SENSOR {
+        int id PK
+        string type
+        string status
+        int field_id FK
+    }
+
+    METRIC {
+        int id PK
+        float value
+        timestamp created_at
+        int sensor_id FK
+    }
+
+    PEST {
+        int id PK
+        string name
+        string risk_level
+    }
+
+    PREDICTION {
+        int id PK
+        float probability
+        string recommendation
+        timestamp forecast_date
+        int field_id FK
+        int pest_id FK
+    }
