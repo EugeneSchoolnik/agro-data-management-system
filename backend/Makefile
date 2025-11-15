@@ -5,7 +5,7 @@ export
 MIGRATE_PATH=./migrations
 DB_URL=postgres://$(DB_USER):$(DB_PASSWORD)@localhost:5432/$(DB_NAME)?sslmode=disable
 
-.PHONY: up down migrate-up migrate-down build
+.PHONY: up down migrate-create migrate-up migrate-down build
 
 # Запуск усієї інфраструктури (БД, Python-сервіс)
 up:
@@ -14,6 +14,9 @@ up:
 # Зупинка контейнерів
 down:
 	docker-compose down
+
+migrate-create:
+	migrate create -ext sql -dir migrations -seq $(name)
 
 # Запуск міграцій "вгору"
 migrate-up:
