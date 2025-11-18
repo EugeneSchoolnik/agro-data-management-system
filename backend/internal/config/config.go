@@ -10,9 +10,10 @@ import (
 )
 
 type Config struct {
-	Server      HTTPServer `yaml:"server"`
-	Database    DBConfig   `yaml:"database"`
-	Forecasting AIConfig   `yaml:"forecasting"`
+	Server       HTTPServer   `yaml:"server"`
+	Database     DBConfig     `yaml:"database"`
+	TestDatabase TestDatabase `yaml:"test_database"`
+	Forecasting  AIConfig     `yaml:"forecasting"`
 }
 
 type HTTPServer struct {
@@ -22,11 +23,20 @@ type HTTPServer struct {
 
 type DBConfig struct {
 	Host     string `yaml:"host" env-required:"true"`
-	Port     int    `yaml:"port" env-default:"5432"`
+	Port     int    `yaml:"port" env:"DB_PORT" env-default:"5432"`
 	User     string `yaml:"user" env:"DB_USER" env-required:"true"`
 	Password string `yaml:"pass" env:"DB_PASSWORD" env-required:"true"`
-	Name     string `yaml:"name" env-required:"true"`
-	SSLMode string `yaml:"ssl_mode" env-default:"disable"`
+	Name     string `yaml:"name" env:"DB_NAME" env-required:"true"`
+	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
+}
+
+type TestDatabase struct {
+	Host     string `yaml:"host" env:"TEST_DB_HOST" env-default:"localhost"`
+	Port     int    `yaml:"port" env:"TEST_DB_PORT" env-default:"5433"`
+	User     string `yaml:"user" env:"TEST_DB_USER" env-required:"true"`
+	Password string `yaml:"pass" env:"TEST_DB_PASSWORD" env-required:"true"`
+	Name     string `yaml:"name" env:"TEST_DB_NAME" env-required:"true"`
+	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
 }
 
 type AIConfig struct {
