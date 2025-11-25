@@ -39,7 +39,7 @@ func initTestConfig(t *testing.T) *config.Config {
 
 	// Шлях до твого local.yaml
 	cfg, err := config.LoadConfig(filepath.Join(root, "config/local.yaml"))
-	require.NoError(t, err, "Не вдалося завантажити тестовий конфіг")
+	require.NoError(t, err, "failed to load test config")
 
 	return cfg
 }
@@ -49,13 +49,13 @@ func setupTestDB(t *testing.T, tables ...string) *sqlx.DB {
 	cfg := initTestConfig(t)
 
 	db, err := NewPostgresDB(config.DBConfig(cfg.TestDatabase))
-	require.NoError(t, err, "Не вдалося підключитися до тестової БД")
+	require.NoError(t, err, "failed to connect to test db")
 
 	// Очищуємо передані таблиці для ізоляції тесту
 	if len(tables) > 0 {
 		for _, table := range tables {
 			_, err := db.Exec("TRUNCATE TABLE " + table + " CASCADE")
-			require.NoError(t, err, "Не вдалося очистити таблицю: "+table)
+			require.NoError(t, err, "failed to clear the table: "+table)
 		}
 	}
 

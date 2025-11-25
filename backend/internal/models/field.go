@@ -17,3 +17,9 @@ type Field struct {
 	CropID    int       `db:"crop_id" json:"crop_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
+
+type FieldWithCrop struct {
+	Field
+	CropName    string `db:"crop_name" json:"crop_name"`
+	CropVariety string `db:"crop_variety" json:"crop_variety"`
+}
