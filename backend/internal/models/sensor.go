@@ -1,13 +1,35 @@
 package models
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
+
+// SensorStatus — наш власний тип для "enum"
+type SensorStatus string
+
+const (
+	StatusActive   SensorStatus = "active"
+	StatusInactive SensorStatus = "inactive"
+	StatusError    SensorStatus = "error"
+	StatusTesting  SensorStatus = "testing"
+)
+
+// IsValid перевіряє, чи входить статус у дозволений список
+func (s SensorStatus) IsValid() error {
+	switch s {
+	case StatusActive, StatusInactive, StatusError, StatusTesting:
+		return nil
+	}
+	return fmt.Errorf("invalid sensor status: %s", s)
+}
 
 type Sensor struct {
-	ID         int       `db:"id" json:"id"`
-	FieldID    int       `db:"field_id" json:"field_id"`
-	SensorType string    `db:"sensor_type" json:"sensor_type"`
-	Status     string    `db:"status" json:"status"`
-	LastSync   time.Time `db:"last_sync" json:"last_sync"`
+	ID         int          `db:"id" json:"id"`
+	FieldID    int          `db:"field_id" json:"field_id"`
+	SensorType string       `db:"sensor_type" json:"sensor_type"`
+	Status     SensorStatus `db:"status" json:"status"`
+	LastSync   time.Time    `db:"last_sync" json:"last_sync"`
 }
 
 type Metric struct {
