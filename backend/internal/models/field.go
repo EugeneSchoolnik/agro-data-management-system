@@ -4,8 +4,8 @@ import "time"
 
 type Crop struct {
 	ID          int    `db:"id" json:"id"`
-	Name        string `db:"name" json:"name"`
-	Variety     string `db:"variety" json:"variety"`
+	Name        string `db:"name" json:"name" validate:"required,min=2,max=100"`
+	Variety     string `db:"variety" json:"variety" validate:"required"`
 	Description string `db:"description" json:"description"`
 }
 
