@@ -11,10 +11,10 @@ type Crop struct {
 
 type Field struct {
 	ID        int       `db:"id" json:"id"`
-	Name      string    `db:"name" json:"name"`
-	Area      float64   `db:"area" json:"area"`
-	Location  string    `db:"location" json:"location"`
-	CropID    int       `db:"crop_id" json:"crop_id"`
+	Name      string    `db:"name" json:"name" validate:"required,min=3"`
+	Area      float64   `db:"area" json:"area" validate:"required,gt=0"`
+	Location  string    `db:"location" json:"location" validate:"required"`
+	CropID    int       `db:"crop_id" json:"crop_id" validate:"required,gt=0"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
