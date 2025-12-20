@@ -118,7 +118,7 @@ func (_m *SensorRepository) GetByID(id int) (models.Sensor, error) {
 }
 
 // UpdateStatus provides a mock function with given fields: id, status
-func (_m *SensorRepository) UpdateStatus(id int, status string) error {
+func (_m *SensorRepository) UpdateStatus(id int, status models.SensorStatus) error {
 	ret := _m.Called(id, status)
 
 	if len(ret) == 0 {
@@ -127,7 +127,7 @@ func (_m *SensorRepository) UpdateStatus(id int, status string) error {
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(int, string) error); ok {
-		r0 = rf(id, status)
+		r0 = rf(id, string(status))
 	} else {
 		r0 = ret.Error(0)
 	}

@@ -12,7 +12,7 @@ type SensorRepository interface {
 	Create(sensor models.Sensor) (int, error)
 	GetByID(id int) (models.Sensor, error)
 	GetByFieldID(fieldID int) ([]models.Sensor, error)
-	UpdateStatus(id int, status string) error
+	UpdateStatus(id int, status models.SensorStatus) error
 	Delete(id int) error
 }
 

@@ -25,10 +25,11 @@ func (s SensorStatus) IsValid() error {
 }
 
 type Sensor struct {
-	ID         int          `db:"id" json:"id"`
-	FieldID    int          `db:"field_id" json:"field_id"`
-	SensorType string       `db:"sensor_type" json:"sensor_type"`
-	Status     SensorStatus `db:"status" json:"status"`
+	ID      int `db:"id" json:"id"`
+	FieldID int `db:"field_id" json:"field_id" validate:"required,gt=0"`
+	// Тип датчика (напр. "humidity", "temperature", "camera")
+	SensorType string       `db:"sensor_type" json:"sensor_type" validate:"required,min=3"`
+	Status     SensorStatus `db:"status" json:"status" validate:"required"`
 	LastSync   time.Time    `db:"last_sync" json:"last_sync"`
 }
 
