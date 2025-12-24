@@ -34,8 +34,9 @@ type Sensor struct {
 }
 
 type Metric struct {
-	ID         int64     `db:"id" json:"id"`
-	SensorID   int       `db:"sensor_id" json:"sensor_id"`
-	Value      float64   `db:"value" json:"value"`
+	ID       int64 `db:"id" json:"id"`
+	SensorID int   `db:"sensor_id" json:"sensor_id" validate:"required,gt=0"`
+	// Значення не може бути нульовим (для більшості агро-метрик)
+	Value      float64   `db:"value" json:"value" validate:"required"`
 	RecordedAt time.Time `db:"recorded_at" json:"recorded_at"`
 }
