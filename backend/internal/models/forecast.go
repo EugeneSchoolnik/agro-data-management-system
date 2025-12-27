@@ -4,8 +4,8 @@ import "time"
 
 type Pest struct {
 	ID             int    `db:"id" json:"id"`
-	Name           string `db:"name" json:"name"`
-	ScientificName string `db:"scientific_name" json:"scientific_name"`
+	Name           string `db:"name" json:"name" validate:"required,min=3"`
+	ScientificName string `db:"scientific_name" json:"scientific_name" validate:"required,min=5"`
 }
 
 type Forecast struct {
