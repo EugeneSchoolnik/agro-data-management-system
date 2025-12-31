@@ -5,11 +5,19 @@ export
 MIGRATE_PATH=./migrations
 DB_URL=postgres://$(DB_USER):$(DB_PASSWORD)@localhost:5432/$(DB_NAME)?sslmode=disable
 TEST_DB_URL=postgres://$(TEST_DB_USER):$(TEST_DB_PASSWORD)@localhost:$(TEST_DB_PORT)/$(TEST_DB_NAME)?sslmode=disable
+REPOS_DIR=internal/repository
+SERVICES_DIR=internal/service
+MOCKS_OUT=mocks
 
 .PHONY: gen-mocks up down migrate-create migrate-up migrate-down migrate-test-up migrate-test-down build
 
 gen-mocks:
-	mockery --all --recursive --dir=internal/repository --output=internal/repository/mocks --case=underscore
+	@echo "Generating Repository mocks..."
+	mockery --all --recursive --dir=$(REPOS_DIR) --output=$(REPOS_DIR)/$(MOCKS_OUT) --case=underscore
+	
+	@echo "Generating Service mocks..."
+	mockery --all --recursive --dir=$(SERVICES_DIR) --output=$(SERVICES_DIR)/$(MOCKS_OUT) --case=underscore
+	@echo "Done!"
 
 # Запуск усієї інфраструктури (БД, Python-сервіс)
 up:

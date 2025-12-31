@@ -16,3 +16,15 @@ type Forecast struct {
 	Recommendation string    `db:"recommendation" json:"recommendation"`
 	CreatedAt      time.Time `db:"created_at" json:"created_at"`
 }
+
+type ForecastRequest struct {
+	CropName string    `json:"crop_name"`
+	Variety  string    `json:"variety"`
+	Metrics  []float64 `json:"metrics"`
+	PestName string    `json:"pest_name"`
+}
+
+type ForecastResponse struct {
+	Probability    float64 `json:"probability"`
+	Recommendation string  `json:"recommendation"`
+}
