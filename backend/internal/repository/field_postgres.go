@@ -2,6 +2,7 @@ package repository
 
 import (
 	"agro-data-management-system/internal/models"
+	"database/sql"
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
@@ -33,6 +34,16 @@ func (r *FieldPostgres) Create(f models.Field) (int, error) {
 		return 0, fmt.Errorf("failed to create field: %w", err)
 	}
 	return id, nil
+}
+
+func (r *FieldPostgres) GetByID(id int) (models.Field, error) {
+	var field models.Field
+	query := `SELECT id, name, area, location, crop_id, created_at FROM fields WHERE id = $1`
+	err := r.db.Get(&field, query, id)
+	if err == sql.ErrNoRows {
+		return field, fmt.Errorf("field not found")
+	}
+	return field, err
 }
 
 func (r *FieldPostgres) GetByIDWithCrop(id int) (models.FieldWithCrop, error) {
