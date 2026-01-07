@@ -47,7 +47,7 @@ func (r *CropPostgres) GetByID(id int) (models.Crop, error) {
 }
 
 func (r *CropPostgres) GetAll() ([]models.Crop, error) {
-	var crops []models.Crop
+	crops := []models.Crop{}
 	query := `SELECT id, name, variety, description FROM crops ORDER BY name ASC`
 	err := r.db.Select(&crops, query)
 	return crops, err

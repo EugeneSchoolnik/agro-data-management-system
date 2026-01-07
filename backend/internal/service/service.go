@@ -25,14 +25,28 @@ type Dependencies struct {
 
 // NewServices ініціалізує всі сервіси та повертає їх як єдиний об'єкт
 func NewServices(deps Dependencies) *Services {
+	// Спершу створюємо незалежні сервіси
+	cropSrv := NewCropService(deps.Repos.Crop, deps.Log)
+	fieldSrv := NewFieldService(deps.Repos.Field, deps.Repos.Crop, deps.Log)
+	sensorSrv := NewSensorService(deps.Repos.Sensor, deps.Repos.Field, deps.Log)
+	pestSrv := NewPestService(deps.Repos.Pest, deps.Log)
+	metricSrv := NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log)
+
+	forecastSrv := NewForecastService(
+		deps.Repos.Forecast,
+		metricSrv,
+		fieldSrv,
+		pestSrv,
+		deps.AiURL,
+		deps.Log,
+	)
+
 	return &Services{
-		Crop:     NewCropService(deps.Repos.Crop, deps.Log),
-		Field:    NewFieldService(deps.Repos.Field, deps.Repos.Crop, deps.Log),
-		Sensor:   NewSensorService(deps.Repos.Sensor, deps.Repos.Field, deps.Log),
-		Metric:   NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log),
-		Pest:     NewPestService(deps.Repos.Pest, deps.Log),
-		Forecast: NewForecastService(deps.Repos.Forecast, nil, nil, nil, deps.AiURL, deps.Log),
-		// Примітка: для ForecastService ми передамо інші сервіси пізніше
-		// або оновимо його конструктор, щоб він приймав цілісний об'єкт
+		Crop:     cropSrv,
+		Field:    fieldSrv,
+		Sensor:   sensorSrv,
+		Metric:   metricSrv,
+		Pest:     pestSrv,
+		Forecast: forecastSrv,
 	}
 }

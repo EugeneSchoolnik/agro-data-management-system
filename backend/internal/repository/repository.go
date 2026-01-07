@@ -13,7 +13,7 @@ type Repositories struct {
 	Forecast ForecastRepository
 }
 
-func NewServices(db *sqlx.DB) *Repositories {
+func NewRepositories(db *sqlx.DB) *Repositories {
 	return &Repositories{
 		Crop:     NewCropPostgres(db),
 		Field:    NewFieldPostgres(db),
