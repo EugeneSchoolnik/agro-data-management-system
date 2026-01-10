@@ -27,6 +27,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	// Додаємо стандартні Middleware
 	router.Use(gin.Recovery())
 	router.Use(h.loggingMiddleware()) // Наш кастомний логер запитів
+	router.Use(h.corsMiddleware())
 
 	api := router.Group("/api/v1")
 	{
@@ -38,10 +39,43 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			crops.PUT("/:id", h.updateCrop)
 			crops.DELETE("/:id", h.deleteCrop)
 		}
-		// Тут будуть інші групи: fields, sensors, metrics...
+
+		fields := api.Group("/fields")
+		{
+			fields.POST("/", h.createField)
+			fields.GET("/", h.getAllFields)
+			fields.GET("/:id", h.getFieldById)
+			fields.PUT("/:id", h.updateField)
+			fields.DELETE("/:id", h.deleteField)
+
+			fields.GET("/:id/sensors", h.getSensorsByField)
+		}
+
+		sensors := api.Group("/sensors")
+		{
+			sensors.POST("/", h.registerSensor)
+			sensors.GET("/:id", h.getSensorById)
+			sensors.PATCH("/:id/status", h.updateSensorStatus)
+			sensors.DELETE("/:id", h.deleteSensor)
+		}
 	}
 
 	return router
+}
+
+func (h *Handler) corsMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // Для розробки можна *, для продакшну — конкретний URL
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
 }
 
 // Допоміжні методи для відповідей
