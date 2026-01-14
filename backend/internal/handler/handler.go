@@ -57,6 +57,15 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			sensors.GET("/:id", h.getSensorById)
 			sensors.PATCH("/:id/status", h.updateSensorStatus)
 			sensors.DELETE("/:id", h.deleteSensor)
+
+			// metrics
+			sensors.GET("/:id/metrics/latest", h.getLatestMetric)
+			sensors.GET("/:id/metrics/history", h.getMetricHistory)
+		}
+
+		metrics := api.Group("/metrics")
+		{
+			metrics.POST("/", h.saveMetric)
 		}
 	}
 

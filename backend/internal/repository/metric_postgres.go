@@ -48,7 +48,7 @@ func (r *MetricPostgres) GetLatestBySensor(sensorID int) (models.Metric, error) 
 }
 
 func (r *MetricPostgres) GetHistoryBySensor(sensorID int, from, to time.Time) ([]models.Metric, error) {
-	var metrics []models.Metric
+	metrics := []models.Metric{}
 	query := `SELECT id, sensor_id, value, recorded_at FROM metrics 
               WHERE sensor_id = $1 AND recorded_at BETWEEN $2 AND $3 
               ORDER BY recorded_at ASC`
