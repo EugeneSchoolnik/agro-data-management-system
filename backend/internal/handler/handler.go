@@ -67,6 +67,15 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			metrics.POST("/", h.saveMetric)
 		}
+
+		pests := api.Group("/pests")
+		{
+			pests.POST("/", h.createPest)
+			pests.GET("/", h.getAllPests)
+			pests.GET("/:id", h.getPestById)
+			pests.PUT("/:id", h.updatePest)
+			pests.DELETE("/:id", h.deletePest)
+		}
 	}
 
 	return router
