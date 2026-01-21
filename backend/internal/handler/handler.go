@@ -48,7 +48,11 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			fields.PUT("/:id", h.updateField)
 			fields.DELETE("/:id", h.deleteField)
 
+			// sensor
 			fields.GET("/:id/sensors", h.getSensorsByField)
+
+			// forecast
+			fields.GET("/:id/forecast/latest", h.getLatestForecast)
 		}
 
 		sensors := api.Group("/sensors")
@@ -75,6 +79,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			pests.GET("/:id", h.getPestById)
 			pests.PUT("/:id", h.updatePest)
 			pests.DELETE("/:id", h.deletePest)
+		}
+
+		forecasts := api.Group("/forecasts")
+		{
+			// Запуск розрахунку прогнозу
+			forecasts.POST("/predict", h.predict)
 		}
 	}
 
