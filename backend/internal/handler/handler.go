@@ -4,6 +4,7 @@ import (
 	"agro-data-management-system/internal/service"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -27,14 +28,24 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	// Додаємо стандартні Middleware
 	router.Use(gin.Recovery())
 	router.Use(h.loggingMiddleware()) // Наш кастомний логер запитів
-	router.Use(h.corsMiddleware())
+
+	// CORS конфігурація
+	router.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		AllowCredentials: true,
+		MaxAge:           12 * 24 * 3600,
+	}))
 
 	api := router.Group("/api/v1")
+
 	{
 		crops := api.Group("/crops")
+
 		{
-			crops.POST("/", h.createCrop)
-			crops.GET("/", h.getAllCrops)
+			crops.POST("", h.createCrop)
+			crops.GET("", h.getAllCrops)
 			crops.GET("/:id", h.getCropById)
 			crops.PUT("/:id", h.updateCrop)
 			crops.DELETE("/:id", h.deleteCrop)
@@ -42,8 +53,8 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		fields := api.Group("/fields")
 		{
-			fields.POST("/", h.createField)
-			fields.GET("/", h.getAllFields)
+			fields.POST("", h.createField)
+			fields.GET("", h.getAllFields)
 			fields.GET("/:id", h.getFieldById)
 			fields.PUT("/:id", h.updateField)
 			fields.DELETE("/:id", h.deleteField)
@@ -57,7 +68,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		sensors := api.Group("/sensors")
 		{
-			sensors.POST("/", h.registerSensor)
+			sensors.POST("", h.registerSensor)
 			sensors.GET("/:id", h.getSensorById)
 			sensors.PATCH("/:id/status", h.updateSensorStatus)
 			sensors.DELETE("/:id", h.deleteSensor)
@@ -69,13 +80,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 		metrics := api.Group("/metrics")
 		{
-			metrics.POST("/", h.saveMetric)
+			metrics.POST("", h.saveMetric)
 		}
 
 		pests := api.Group("/pests")
 		{
-			pests.POST("/", h.createPest)
-			pests.GET("/", h.getAllPests)
+			pests.POST("", h.createPest)
+			pests.GET("", h.getAllPests)
 			pests.GET("/:id", h.getPestById)
 			pests.PUT("/:id", h.updatePest)
 			pests.DELETE("/:id", h.deletePest)
@@ -91,24 +102,13 @@ func (h *Handler) InitRoutes() *gin.Engine {
 	return router
 }
 
-func (h *Handler) corsMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // Для розробки можна *, для продакшну — конкретний URL
-		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
-		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		if c.Request.Method == "OPTIONS" {
-			c.AbortWithStatus(204)
-			return
-		}
-
-		c.Next()
-	}
-}
-
 // Допоміжні методи для відповідей
 func (h *Handler) newErrorResponse(c *gin.Context, statusCode int, message string) {
-	h.log.Error("API Error", zap.Int("status", statusCode), zap.String("message", message))
+	if statusCode >= 500 {
+		h.log.Error("API Error", zap.Int("status", statusCode), zap.String("message", message))
+	} else {
+		h.log.Info("API Client Error", zap.Int("status", statusCode), zap.String("message", message))
+	}
 	c.AbortWithStatusJSON(statusCode, gin.H{"error": message})
 }
 
