@@ -16,13 +16,13 @@ func (h *Handler) createCrop(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Crop.Create(input)
+	crop, err := h.services.Crop.Create(input)
 	if err != nil {
 		h.newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	h.newSuccessResponse(c, gin.H{"id": id})
+	h.newSuccessResponse(c, crop)
 }
 
 // getAllCrops — Отримання списку всіх культур

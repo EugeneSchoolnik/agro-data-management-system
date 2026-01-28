@@ -74,22 +74,22 @@ func (_m *MetricService) GetLatest(sensorID int) (models.Metric, error) {
 }
 
 // Save provides a mock function with given fields: metric
-func (_m *MetricService) Save(metric models.Metric) (int64, error) {
+func (_m *MetricService) Save(metric models.Metric) (models.Metric, error) {
 	ret := _m.Called(metric)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Save")
 	}
 
-	var r0 int64
+	var r0 models.Metric
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Metric) (int64, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Metric) (models.Metric, error)); ok {
 		return rf(metric)
 	}
-	if rf, ok := ret.Get(0).(func(models.Metric) int64); ok {
+	if rf, ok := ret.Get(0).(func(models.Metric) models.Metric); ok {
 		r0 = rf(metric)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Get(0).(models.Metric)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Metric) error); ok {

@@ -10,7 +10,7 @@ import (
 )
 
 type CropService interface {
-	Create(crop models.Crop) (int, error)
+	Create(crop models.Crop) (models.Crop, error)
 	GetByID(id int) (models.Crop, error)
 	GetAll() ([]models.Crop, error)
 	Update(crop models.Crop) error
@@ -31,22 +31,22 @@ func NewCropService(repo repository.CropRepository, log *zap.Logger) CropService
 	}
 }
 
-func (s *cropService) Create(c models.Crop) (int, error) {
+func (s *cropService) Create(c models.Crop) (models.Crop, error) {
 	// 1. Валідація даних
 	if err := s.validate.Struct(c); err != nil {
 		s.log.Warn("Validation failed for Crop creation", zap.Error(err))
-		return 0, fmt.Errorf("invalid input: %w", err)
+		return c, fmt.Errorf("invalid input: %w", err)
 	}
 
 	// 2. Виклик репозиторію
-	id, err := s.repo.Create(c)
+	crop, err := s.repo.Create(c)
 	if err != nil {
 		s.log.Error("Failed to create crop in database", zap.Error(err), zap.String("crop_name", c.Name))
-		return 0, err
+		return c, err
 	}
 
-	s.log.Info("New crop created successfully", zap.Int("id", id), zap.String("name", c.Name))
-	return id, nil
+	s.log.Info("New crop created successfully", zap.Int("id", crop.ID), zap.String("name", crop.Name))
+	return crop, nil
 }
 
 func (s *cropService) GetByID(id int) (models.Crop, error) {

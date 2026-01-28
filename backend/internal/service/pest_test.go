@@ -20,12 +20,13 @@ func TestPestService_Create(t *testing.T) {
 		srv := NewPestService(mockRepo, logger)
 
 		pest := models.Pest{Name: "Сарана", ScientificName: "Locusta migratoria"}
-		mockRepo.On("Create", pest).Return(1, nil).Once()
+		expectedPest := models.Pest{ID: 1, Name: "Сарана", ScientificName: "Locusta migratoria"}
+		mockRepo.On("Create", pest).Return(expectedPest, nil).Once()
 
-		id, err := srv.Create(pest)
+		result, err := srv.Create(pest)
 
 		assert.NoError(t, err)
-		assert.Equal(t, 1, id)
+		assert.Equal(t, expectedPest, result)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -37,12 +38,12 @@ func TestPestService_Create(t *testing.T) {
 		// "Bug" — це 3 символи, а ми вимагаємо min=5
 		invalidPest := models.Pest{Name: "Жук", ScientificName: "Bug"}
 
-		id, err := srv.Create(invalidPest)
+		result, err := srv.Create(invalidPest)
 
 		// 1. Має бути помилка
 		assert.Error(t, err)
-		// 2. ID має бути 0
-		assert.Equal(t, 0, id)
+		// 2. Повертається те саме невалідне значення
+		assert.Equal(t, invalidPest, result)
 		// 3. РЕПОЗИТОРІЙ НЕ МАЄ ВИКЛИКАТИСЯ
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything)
 	})

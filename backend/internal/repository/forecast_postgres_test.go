@@ -20,9 +20,12 @@ func TestForecastRepository_Lifecycle(t *testing.T) {
 	forecastRepo := NewForecastPostgres(db)
 
 	// 1. Створюємо оточення
-	cID, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
-	fID, _ := fieldRepo.Create(models.Field{Name: "Сектор 7", CropID: cID})
-	pID, _ := pestRepo.Create(models.Pest{Name: "Черепашка", ScientificName: "E. integriceps"})
+	crop, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
+	cID := crop.ID
+	field, _ := fieldRepo.Create(models.Field{Name: "Сектор 7", CropID: cID})
+	fID := field.ID
+	pest, _ := pestRepo.Create(models.Pest{Name: "Черепашка", ScientificName: "E. integriceps"})
+	pID := pest.ID
 
 	// 2. ТЕСТ: Створення прогнозу
 	now := time.Now().UTC().Truncate(time.Second)
@@ -34,9 +37,9 @@ func TestForecastRepository_Lifecycle(t *testing.T) {
 		CreatedAt:      now,
 	}
 
-	id, err := forecastRepo.Create(newForecast)
+	forecast, err := forecastRepo.Create(newForecast)
 	assert.NoError(t, err)
-	assert.Greater(t, id, 0)
+	assert.Greater(t, forecast.ID, 0)
 
 	// 3. ТЕСТ: Отримання останнього прогнозу
 	latest, err := forecastRepo.GetLatestByField(fID)

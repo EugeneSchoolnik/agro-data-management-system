@@ -28,12 +28,12 @@ func TestSensorService_Register(t *testing.T) {
 		// Поле існує
 		fRepo.On("GetByIDWithCrop", 1).Return(models.FieldWithCrop{}, nil).Once()
 		// Створення успішне
-		sRepo.On("Create", sensor).Return(101, nil).Once()
+		sRepo.On("Create", sensor).Return(models.Sensor{ID: 101, FieldID: 1, SensorType: "DHT22", Status: models.StatusActive}, nil).Once()
 
-		id, err := srv.Register(sensor)
+		result, err := srv.Register(sensor)
 
 		assert.NoError(t, err)
-		assert.Equal(t, 101, id)
+		assert.Equal(t, models.Sensor{ID: 101, FieldID: 1, SensorType: "DHT22", Status: models.StatusActive}, result)
 		mock.AssertExpectationsForObjects(t, sRepo, fRepo)
 	})
 
@@ -43,11 +43,11 @@ func TestSensorService_Register(t *testing.T) {
 
 		fRepo.On("GetByIDWithCrop", 404).Return(models.FieldWithCrop{}, errors.New("sql: no rows")).Once()
 
-		id, err := srv.Register(sensor)
+		result, err := srv.Register(sensor)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "field 404 not found")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, sensor, result)
 		sRepo.AssertNotCalled(t, "Create", mock.Anything)
 	})
 

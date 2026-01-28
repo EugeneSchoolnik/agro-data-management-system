@@ -90,22 +90,22 @@ func (_m *SensorService) GetByID(id int) (models.Sensor, error) {
 }
 
 // Register provides a mock function with given fields: sensor
-func (_m *SensorService) Register(sensor models.Sensor) (int, error) {
+func (_m *SensorService) Register(sensor models.Sensor) (models.Sensor, error) {
 	ret := _m.Called(sensor)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Register")
 	}
 
-	var r0 int
+	var r0 models.Sensor
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Sensor) (int, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Sensor) (models.Sensor, error)); ok {
 		return rf(sensor)
 	}
-	if rf, ok := ret.Get(0).(func(models.Sensor) int); ok {
+	if rf, ok := ret.Get(0).(func(models.Sensor) models.Sensor); ok {
 		r0 = rf(sensor)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(models.Sensor)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Sensor) error); ok {

@@ -9,7 +9,7 @@ import (
 )
 
 type FieldRepository interface {
-	Create(field models.Field) (int, error)
+	Create(field models.Field) (models.Field, error)
 	GetByID(id int) (models.Field, error)
 	GetByIDWithCrop(id int) (models.FieldWithCrop, error)
 	GetAll() ([]models.FieldWithCrop, error)
@@ -25,15 +25,14 @@ func NewFieldPostgres(db *sqlx.DB) *FieldPostgres {
 	return &FieldPostgres{db: db}
 }
 
-func (r *FieldPostgres) Create(f models.Field) (int, error) {
-	var id int
+func (r *FieldPostgres) Create(f models.Field) (models.Field, error) {
 	query := `INSERT INTO fields (name, area, location, crop_id) 
-              VALUES ($1, $2, $3, $4) RETURNING id`
+              VALUES ($1, $2, $3, $4) RETURNING id, created_at`
 	row := r.db.QueryRow(query, f.Name, f.Area, f.Location, f.CropID)
-	if err := row.Scan(&id); err != nil {
-		return 0, fmt.Errorf("failed to create field: %w", err)
+	if err := row.Scan(&f.ID, &f.CreatedAt); err != nil {
+		return f, fmt.Errorf("failed to create field: %w", err)
 	}
-	return id, nil
+	return f, nil
 }
 
 func (r *FieldPostgres) GetByID(id int) (models.Field, error) {

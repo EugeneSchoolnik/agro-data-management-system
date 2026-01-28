@@ -11,7 +11,7 @@ import (
 )
 
 type MetricService interface {
-	Save(metric models.Metric) (int64, error)
+	Save(metric models.Metric) (models.Metric, error)
 	GetLatest(sensorID int) (models.Metric, error)
 	GetHistory(sensorID int, from, to time.Time) ([]models.Metric, error)
 }
@@ -32,35 +32,35 @@ func NewMetricService(mr repository.MetricRepository, sr repository.SensorReposi
 	}
 }
 
-func (s *metricService) Save(m models.Metric) (int64, error) {
+func (s *metricService) Save(m models.Metric) (models.Metric, error) {
 	// 1. Валідація структури
 	if err := s.validate.Struct(m); err != nil {
-		return 0, fmt.Errorf("metric validation failed: %w", err)
+		return m, fmt.Errorf("metric validation failed: %w", err)
 	}
 
 	// 2. ПЕРЕВІРКА ДАТЧИКА: Чи існує він і чи він ACTIVE?
 	sensor, err := s.sensorRepo.GetByID(m.SensorID)
 	if err != nil {
 		s.log.Warn("Received metric from unknown sensor", zap.Int("sensor_id", m.SensorID))
-		return 0, fmt.Errorf("sensor %d not found", m.SensorID)
+		return m, fmt.Errorf("sensor %d not found", m.SensorID)
 	}
 
 	if sensor.Status != models.StatusActive {
 		s.log.Warn("Ignoring metric from inactive sensor",
 			zap.Int("sensor_id", m.SensorID),
 			zap.String("status", string(sensor.Status)))
-		return 0, fmt.Errorf("sensor %d is not active (current status: %s)", m.SensorID, sensor.Status)
+		return m, fmt.Errorf("sensor %d is not active (current status: %s)", m.SensorID, sensor.Status)
 	}
 
 	// 3. Збереження
-	id, err := s.metricRepo.Create(m)
+	metric, err := s.metricRepo.Create(m)
 	if err != nil {
 		s.log.Error("Failed to save metric", zap.Error(err))
-		return 0, err
+		return m, err
 	}
 
-	s.log.Debug("Metric saved", zap.Int64("id", id), zap.Float64("value", m.Value))
-	return id, nil
+	s.log.Debug("Metric saved", zap.Int64("id", metric.ID), zap.Float64("value", metric.Value))
+	return metric, nil
 }
 
 func (s *metricService) GetLatest(sensorID int) (models.Metric, error) {

@@ -14,22 +14,22 @@ type PestRepository struct {
 }
 
 // Create provides a mock function with given fields: pest
-func (_m *PestRepository) Create(pest models.Pest) (int, error) {
+func (_m *PestRepository) Create(pest models.Pest) (models.Pest, error) {
 	ret := _m.Called(pest)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 int
+	var r0 models.Pest
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Pest) (int, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Pest) (models.Pest, error)); ok {
 		return rf(pest)
 	}
-	if rf, ok := ret.Get(0).(func(models.Pest) int); ok {
+	if rf, ok := ret.Get(0).(func(models.Pest) models.Pest); ok {
 		r0 = rf(pest)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(models.Pest)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Pest) error); ok {

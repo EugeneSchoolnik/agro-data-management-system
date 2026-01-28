@@ -16,11 +16,12 @@ func TestFieldRepository_Lifecycle(t *testing.T) {
 	fieldRepo := NewFieldPostgres(db)
 
 	// 1. Створюємо залежність (культуру)
-	cropID, err := cropRepo.Create(models.Crop{
+	crop, err := cropRepo.Create(models.Crop{
 		Name:    "Пшениця",
 		Variety: "Скарбниця",
 	})
 	assert.NoError(t, err)
+	cropID := crop.ID
 
 	// 2. Тестуємо Create Field
 	newField := models.Field{
@@ -30,9 +31,11 @@ func TestFieldRepository_Lifecycle(t *testing.T) {
 		CropID:   cropID,
 	}
 
-	fieldID, err := fieldRepo.Create(newField)
+	field, err := fieldRepo.Create(newField)
 	assert.NoError(t, err)
-	assert.Greater(t, fieldID, 0)
+	assert.Greater(t, field.ID, 0)
+
+	fieldID := field.ID
 
 	// 3. Тестуємо GetByIDWithCrop (Перевірка JOIN)
 	fieldWithCrop, err := fieldRepo.GetByIDWithCrop(fieldID)

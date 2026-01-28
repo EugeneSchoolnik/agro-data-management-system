@@ -27,12 +27,13 @@ func TestFieldService_Create(t *testing.T) {
 		field := models.Field{Name: "Південний сектор", Area: 100.5, Location: "45.0, 31.0", CropID: 1}
 
 		cRepo.On("GetByID", 1).Return(models.Crop{ID: 1}, nil).Once()
-		fRepo.On("Create", field).Return(5, nil).Once()
+		expectedField := models.Field{ID: 5, Name: "Південний сектор", Area: 100.5, Location: "45.0, 31.0", CropID: 1}
+		fRepo.On("Create", field).Return(expectedField, nil).Once()
 
-		id, err := srv.Create(field)
+		result, err := srv.Create(field)
 
 		assert.NoError(t, err)
-		assert.Equal(t, 5, id)
+		assert.Equal(t, expectedField, result)
 		mock.AssertExpectationsForObjects(t, fRepo, cRepo)
 	})
 
@@ -40,11 +41,11 @@ func TestFieldService_Create(t *testing.T) {
 		srv, fRepo, _ := setupFieldServiceTest()
 		invalidField := models.Field{Name: "", Area: 10, Location: "0,0", CropID: 1}
 
-		id, err := srv.Create(invalidField)
+		result, err := srv.Create(invalidField)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "Field.Name")
-		assert.Equal(t, 0, id)
+		assert.Equal(t, invalidField, result)
 		fRepo.AssertNotCalled(t, "Create", mock.Anything)
 	})
 
@@ -59,16 +60,15 @@ func TestFieldService_Create(t *testing.T) {
 	})
 
 	t.Run("Crop_Not_Found", func(t *testing.T) {
-		srv, fRepo, cRepo := setupFieldServiceTest()
+		srv, _, cRepo := setupFieldServiceTest()
 		field := models.Field{Name: "Поле 1", Area: 10, Location: "0,0", CropID: 99}
 
 		cRepo.On("GetByID", 99).Return(models.Crop{}, errors.New("not found")).Once()
 
-		_, err := srv.Create(field)
-
+		result, err := srv.Create(field)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "crop with id 99 not found")
-		fRepo.AssertNotCalled(t, "Create", mock.Anything)
+		assert.Equal(t, field, result)
 	})
 
 	t.Run("Database_Error_On_Create", func(t *testing.T) {
@@ -76,7 +76,7 @@ func TestFieldService_Create(t *testing.T) {
 		field := models.Field{Name: "Поле 1", Area: 10, Location: "0,0", CropID: 1}
 
 		cRepo.On("GetByID", 1).Return(models.Crop{ID: 1}, nil).Once()
-		fRepo.On("Create", field).Return(0, errors.New("db connection lost")).Once()
+		fRepo.On("Create", field).Return(models.Field{}, errors.New("db connection lost")).Once()
 
 		_, err := srv.Create(field)
 

@@ -9,7 +9,7 @@ import (
 )
 
 type SensorRepository interface {
-	Create(sensor models.Sensor) (int, error)
+	Create(sensor models.Sensor) (models.Sensor, error)
 	GetByID(id int) (models.Sensor, error)
 	GetByFieldID(fieldID int) ([]models.Sensor, error)
 	UpdateStatus(id int, status models.SensorStatus) error
@@ -24,21 +24,21 @@ func NewSensorPostgres(db *sqlx.DB) *SensorPostgres {
 	return &SensorPostgres{db: db}
 }
 
-func (r *SensorPostgres) Create(s models.Sensor) (int, error) {
+func (r *SensorPostgres) Create(s models.Sensor) (models.Sensor, error) {
 	// Валідація "enum" перед записом
 	if err := s.Status.IsValid(); err != nil {
-		return 0, err
+		return s, err
 	}
 
-	var id int
 	query := `INSERT INTO sensors (field_id, sensor_type, status, last_sync) 
               VALUES ($1, $2, $3, $4) RETURNING id`
 
-	row := r.db.QueryRow(query, s.FieldID, s.SensorType, s.Status, time.Now())
-	if err := row.Scan(&id); err != nil {
-		return 0, fmt.Errorf("failed to create sensor: %w", err)
+	s.LastSync = time.Now()
+	row := r.db.QueryRow(query, s.FieldID, s.SensorType, s.Status, s.LastSync)
+	if err := row.Scan(&s.ID); err != nil {
+		return s, fmt.Errorf("failed to create sensor: %w", err)
 	}
-	return id, nil
+	return s, nil
 }
 
 func (r *SensorPostgres) GetByID(id int) (models.Sensor, error) {

@@ -10,7 +10,7 @@ import (
 )
 
 type FieldService interface {
-	Create(field models.Field) (int, error)
+	Create(field models.Field) (models.Field, error)
 	GetByID(id int) (models.FieldWithCrop, error)
 	GetAll() ([]models.FieldWithCrop, error)
 	Update(field models.Field) error
@@ -33,28 +33,28 @@ func NewFieldService(fr repository.FieldRepository, cr repository.CropRepository
 	}
 }
 
-func (s *fieldService) Create(f models.Field) (int, error) {
+func (s *fieldService) Create(f models.Field) (models.Field, error) {
 	// 1. Валідація структури
 	if err := s.validate.Struct(f); err != nil {
-		return 0, fmt.Errorf("field validation failed: %w", err)
+		return f, fmt.Errorf("field validation failed: %w", err)
 	}
 
 	// 2. Перевірка існування культури
 	_, err := s.cropRepo.GetByID(f.CropID)
 	if err != nil {
 		s.log.Warn("Crop check failed for field creation", zap.Int("crop_id", f.CropID), zap.Error(err))
-		return 0, fmt.Errorf("cannot create field: crop with id %d not found", f.CropID)
+		return f, fmt.Errorf("cannot create field: crop with id %d not found", f.CropID)
 	}
 
 	// 3. Збереження
-	id, err := s.fieldRepo.Create(f)
+	field, err := s.fieldRepo.Create(f)
 	if err != nil {
 		s.log.Error("Failed to save field", zap.Error(err))
-		return 0, err
+		return f, err
 	}
 
-	s.log.Info("Field created successfully", zap.Int("id", id), zap.String("name", f.Name))
-	return id, nil
+	s.log.Info("Field created successfully", zap.Int("id", field.ID), zap.String("name", field.Name))
+	return field, nil
 }
 
 func (s *fieldService) GetByID(id int) (models.FieldWithCrop, error) {

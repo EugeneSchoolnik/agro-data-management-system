@@ -19,12 +19,13 @@ func TestCropService_Create(t *testing.T) {
 		srv := NewCropService(mockRepo, logger)
 
 		crop := models.Crop{Name: "Пшениця", Variety: "Скарбниця"}
-		mockRepo.On("Create", mock.AnythingOfType("models.Crop")).Return(1, nil).Once()
+		expectedCrop := models.Crop{ID: 1, Name: "Пшениця", Variety: "Скарбниця"}
+		mockRepo.On("Create", mock.AnythingOfType("models.Crop")).Return(expectedCrop, nil).Once()
 
-		id, err := srv.Create(crop)
+		result, err := srv.Create(crop)
 
 		assert.NoError(t, err)
-		assert.Equal(t, 1, id)
+		assert.Equal(t, expectedCrop, result)
 		mockRepo.AssertExpectations(t)
 	})
 
@@ -35,11 +36,11 @@ func TestCropService_Create(t *testing.T) {
 
 		invalidCrop := models.Crop{Name: "", Variety: "Сорт"}
 
-		id, err := srv.Create(invalidCrop)
+		result, err := srv.Create(invalidCrop)
 
 		// Перевіряємо, що повернулася помилка валідації
 		assert.Error(t, err)
-		assert.Equal(t, 0, id)
+		assert.Equal(t, invalidCrop, result)
 
 		mockRepo.AssertNotCalled(t, "Create", mock.Anything)
 	})

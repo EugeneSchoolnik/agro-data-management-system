@@ -20,9 +20,12 @@ func TestMetricRepository_Lifecycle(t *testing.T) {
 	metricRepo := NewMetricPostgres(db)
 
 	// 1. Створюємо оточення
-	cID, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
-	fID, _ := fieldRepo.Create(models.Field{Name: "Поле 1", CropID: cID})
-	sID, _ := sensorRepo.Create(models.Sensor{FieldID: fID, SensorType: "DHT22", Status: models.StatusActive})
+	crop, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
+	cID := crop.ID
+	field, _ := fieldRepo.Create(models.Field{Name: "Поле 1", CropID: cID})
+	fID := field.ID
+	sensor, _ := sensorRepo.Create(models.Sensor{FieldID: fID, SensorType: "DHT22", Status: models.StatusActive})
+	sID := sensor.ID
 
 	// 2. ТЕСТ: Створення метрики
 	now := time.Now().UTC().Truncate(time.Second)
@@ -32,9 +35,9 @@ func TestMetricRepository_Lifecycle(t *testing.T) {
 		RecordedAt: now,
 	}
 
-	id, err := metricRepo.Create(m)
+	metric, err := metricRepo.Create(m)
 	assert.NoError(t, err)
-	assert.Greater(t, id, int64(0))
+	assert.Greater(t, metric.ID, int64(0))
 
 	// 3. ТЕСТ: Отримання останньої
 	latest, err := metricRepo.GetLatestBySensor(sID)

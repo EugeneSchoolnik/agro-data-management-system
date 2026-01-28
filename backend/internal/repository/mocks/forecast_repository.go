@@ -14,22 +14,22 @@ type ForecastRepository struct {
 }
 
 // Create provides a mock function with given fields: f
-func (_m *ForecastRepository) Create(f models.Forecast) (int, error) {
+func (_m *ForecastRepository) Create(f models.Forecast) (models.Forecast, error) {
 	ret := _m.Called(f)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 int
+	var r0 models.Forecast
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Forecast) (int, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Forecast) (models.Forecast, error)); ok {
 		return rf(f)
 	}
-	if rf, ok := ret.Get(0).(func(models.Forecast) int); ok {
+	if rf, ok := ret.Get(0).(func(models.Forecast) models.Forecast); ok {
 		r0 = rf(f)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(models.Forecast)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Forecast) error); ok {

@@ -15,13 +15,13 @@ func (h *Handler) createPest(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Pest.Create(input)
+	pest, err := h.services.Pest.Create(input)
 	if err != nil {
 		h.newErrorResponse(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	h.newSuccessResponse(c, gin.H{"id": id})
+	h.newSuccessResponse(c, pest)
 }
 
 func (h *Handler) getAllPests(c *gin.Context) {

@@ -14,22 +14,22 @@ type FieldService struct {
 }
 
 // Create provides a mock function with given fields: field
-func (_m *FieldService) Create(field models.Field) (int, error) {
+func (_m *FieldService) Create(field models.Field) (models.Field, error) {
 	ret := _m.Called(field)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 int
+	var r0 models.Field
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Field) (int, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Field) (models.Field, error)); ok {
 		return rf(field)
 	}
-	if rf, ok := ret.Get(0).(func(models.Field) int); ok {
+	if rf, ok := ret.Get(0).(func(models.Field) models.Field); ok {
 		r0 = rf(field)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(models.Field)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Field) error); ok {

@@ -10,7 +10,7 @@ import (
 )
 
 type ForecastRepository interface {
-	Create(f models.Forecast) (int, error)
+	Create(f models.Forecast) (models.Forecast, error)
 	GetByID(id int) (models.Forecast, error)
 	GetLatestByField(fieldID int) (models.Forecast, error)
 	GetHistoryByField(fieldID int) ([]models.Forecast, error)
@@ -24,8 +24,7 @@ func NewForecastPostgres(db *sqlx.DB) *ForecastPostgres {
 	return &ForecastPostgres{db: db}
 }
 
-func (r *ForecastPostgres) Create(f models.Forecast) (int, error) {
-	var id int
+func (r *ForecastPostgres) Create(f models.Forecast) (models.Forecast, error) {
 	query := `INSERT INTO forecasts (field_id, pest_id, probability, recommendation, created_at) 
               VALUES ($1, $2, $3, $4, $5) RETURNING id`
 
@@ -33,11 +32,11 @@ func (r *ForecastPostgres) Create(f models.Forecast) (int, error) {
 		f.CreatedAt = time.Now().UTC()
 	}
 
-	err := r.db.QueryRow(query, f.FieldID, f.PestID, f.Probability, f.Recommendation, f.CreatedAt).Scan(&id)
+	err := r.db.QueryRow(query, f.FieldID, f.PestID, f.Probability, f.Recommendation, f.CreatedAt).Scan(&f.ID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to save forecast: %w", err)
+		return f, fmt.Errorf("failed to save forecast: %w", err)
 	}
-	return id, nil
+	return f, nil
 }
 
 func (r *ForecastPostgres) GetByID(id int) (models.Forecast, error) {

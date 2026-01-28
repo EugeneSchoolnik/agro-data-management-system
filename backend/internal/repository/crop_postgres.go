@@ -9,7 +9,7 @@ import (
 )
 
 type CropRepository interface {
-	Create(crop models.Crop) (int, error)
+	Create(crop models.Crop) (models.Crop, error)
 	GetByID(id int) (models.Crop, error)
 	GetAll() ([]models.Crop, error)
 	Update(crop models.Crop) error
@@ -24,16 +24,15 @@ func NewCropPostgres(db *sqlx.DB) *CropPostgres {
 	return &CropPostgres{db: db}
 }
 
-func (r *CropPostgres) Create(c models.Crop) (int, error) {
-	var id int
+func (r *CropPostgres) Create(c models.Crop) (models.Crop, error) {
 	query := `INSERT INTO crops (name, variety, description) 
               VALUES ($1, $2, $3) RETURNING id`
 
 	row := r.db.QueryRow(query, c.Name, c.Variety, c.Description)
-	if err := row.Scan(&id); err != nil {
-		return 0, fmt.Errorf("failed to create crop: %w", err)
+	if err := row.Scan(&c.ID); err != nil {
+		return c, fmt.Errorf("failed to create crop: %w", err)
 	}
-	return id, nil
+	return c, nil
 }
 
 func (r *CropPostgres) GetByID(id int) (models.Crop, error) {

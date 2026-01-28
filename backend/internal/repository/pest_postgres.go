@@ -1,13 +1,14 @@
 package repository
 
 import (
-	"fmt"
 	"agro-data-management-system/internal/models"
+	"fmt"
+
 	"github.com/jmoiron/sqlx"
 )
 
 type PestRepository interface {
-	Create(pest models.Pest) (int, error)
+	Create(pest models.Pest) (models.Pest, error)
 	GetByID(id int) (models.Pest, error)
 	GetAll() ([]models.Pest, error)
 	Update(pest models.Pest) error
@@ -22,15 +23,14 @@ func NewPestPostgres(db *sqlx.DB) *PestPostgres {
 	return &PestPostgres{db: db}
 }
 
-func (r *PestPostgres) Create(p models.Pest) (int, error) {
-	var id int
+func (r *PestPostgres) Create(p models.Pest) (models.Pest, error) {
 	query := `INSERT INTO pests (name, scientific_name) VALUES ($1, $2) RETURNING id`
-	
-	err := r.db.QueryRow(query, p.Name, p.ScientificName).Scan(&id)
+
+	err := r.db.QueryRow(query, p.Name, p.ScientificName).Scan(&p.ID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to create pest: %w", err)
+		return p, fmt.Errorf("failed to create pest: %w", err)
 	}
-	return id, nil
+	return p, nil
 }
 
 func (r *PestPostgres) GetByID(id int) (models.Pest, error) {

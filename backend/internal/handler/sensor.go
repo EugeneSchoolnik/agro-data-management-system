@@ -15,13 +15,13 @@ func (h *Handler) registerSensor(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Sensor.Register(input)
+	sensor, err := h.services.Sensor.Register(input)
 	if err != nil {
 		h.newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.newSuccessResponse(c, gin.H{"id": id})
+	h.newSuccessResponse(c, sensor)
 }
 
 func (h *Handler) getSensorById(c *gin.Context) {

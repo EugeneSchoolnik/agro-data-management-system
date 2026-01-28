@@ -105,14 +105,13 @@ func (s *forecastService) Predict(fieldID, pestID int) (models.Forecast, error) 
 		CreatedAt:      time.Now().UTC(),
 	}
 
-	id, err := s.repo.Create(forecast)
+	createdForecast, err := s.repo.Create(forecast)
 	if err != nil {
 		return models.Forecast{}, err
 	}
-	forecast.ID = id
 
 	s.log.Info("Forecast generated", zap.Int("field_id", fieldID), zap.Float64("prob", aiResp.Probability))
-	return forecast, nil
+	return createdForecast, nil
 }
 
 func (s *forecastService) GetLatest(fieldID int) (models.Forecast, error) {

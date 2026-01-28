@@ -10,7 +10,7 @@ import (
 )
 
 type MetricRepository interface {
-	Create(metric models.Metric) (int64, error)
+	Create(metric models.Metric) (models.Metric, error)
 	GetLatestBySensor(sensorID int) (models.Metric, error)
 	GetHistoryBySensor(sensorID int, from, to time.Time) ([]models.Metric, error)
 }
@@ -23,8 +23,7 @@ func NewMetricPostgres(db *sqlx.DB) *MetricPostgres {
 	return &MetricPostgres{db: db}
 }
 
-func (r *MetricPostgres) Create(m models.Metric) (int64, error) {
-	var id int64
+func (r *MetricPostgres) Create(m models.Metric) (models.Metric, error) {
 	query := `INSERT INTO metrics (sensor_id, value, recorded_at) 
               VALUES ($1, $2, $3) RETURNING id`
 
@@ -32,11 +31,11 @@ func (r *MetricPostgres) Create(m models.Metric) (int64, error) {
 		m.RecordedAt = time.Now()
 	}
 
-	err := r.db.QueryRow(query, m.SensorID, m.Value, m.RecordedAt).Scan(&id)
+	err := r.db.QueryRow(query, m.SensorID, m.Value, m.RecordedAt).Scan(&m.ID)
 	if err != nil {
-		return 0, fmt.Errorf("failed to save metric: %w", err)
+		return m, fmt.Errorf("failed to save metric: %w", err)
 	}
-	return id, nil
+	return m, nil
 }
 
 func (r *MetricPostgres) GetLatestBySensor(sensorID int) (models.Metric, error) {

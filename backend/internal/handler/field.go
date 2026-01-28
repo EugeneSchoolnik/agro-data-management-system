@@ -16,14 +16,14 @@ func (h *Handler) createField(c *gin.Context) {
 		return
 	}
 
-	id, err := h.services.Field.Create(input)
+	field, err := h.services.Field.Create(input)
 	if err != nil {
 		// Якщо сервіс повернув помилку "crop not found", це 400 Bad Request
 		h.newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.newSuccessResponse(c, gin.H{"id": id})
+	h.newSuccessResponse(c, field)
 }
 
 // getAllFields — список усіх полів з назвами культур

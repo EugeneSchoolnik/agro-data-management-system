@@ -10,7 +10,7 @@ import (
 )
 
 type PestService interface {
-	Create(pest models.Pest) (int, error)
+	Create(pest models.Pest) (models.Pest, error)
 	GetByID(id int) (models.Pest, error)
 	GetAll() ([]models.Pest, error)
 	Update(pest models.Pest) error
@@ -31,19 +31,19 @@ func NewPestService(repo repository.PestRepository, log *zap.Logger) PestService
 	}
 }
 
-func (s *pestService) Create(p models.Pest) (int, error) {
+func (s *pestService) Create(p models.Pest) (models.Pest, error) {
 	if err := s.validate.Struct(p); err != nil {
-		return 0, fmt.Errorf("pest validation failed: %w", err)
+		return p, fmt.Errorf("pest validation failed: %w", err)
 	}
 
-	id, err := s.repo.Create(p)
+	pest, err := s.repo.Create(p)
 	if err != nil {
 		s.log.Error("Failed to add new pest to dictionary", zap.Error(err), zap.String("pest", p.Name))
-		return 0, err
+		return p, err
 	}
 
-	s.log.Info("New pest added to system", zap.Int("id", id), zap.String("latin", p.ScientificName))
-	return id, nil
+	s.log.Info("New pest added to system", zap.Int("id", pest.ID), zap.String("latin", pest.ScientificName))
+	return pest, nil
 }
 
 func (s *pestService) GetByID(id int) (models.Pest, error) {

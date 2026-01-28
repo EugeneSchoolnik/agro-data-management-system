@@ -41,7 +41,8 @@ func TestPestHandler_Create(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		input := models.Pest{Name: "Попелиця", ScientificName: "Aphidoidea"}
-		mockSrv.On("Create", input).Return(1, nil).Once()
+		expectedPest := models.Pest{ID: 1, Name: "Попелиця", ScientificName: "Aphidoidea"}
+		mockSrv.On("Create", input).Return(expectedPest, nil).Once()
 
 		body, _ := json.Marshal(input)
 		req, _ := http.NewRequest("POST", "/api/v1/pests/", bytes.NewBuffer(body))
@@ -51,6 +52,7 @@ func TestPestHandler_Create(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), `"id":1`)
+		assert.Contains(t, w.Body.String(), `"name":"Попелиця"`)
 	})
 
 	t.Run("Invalid_JSON", func(t *testing.T) {

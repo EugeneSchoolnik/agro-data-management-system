@@ -37,9 +37,17 @@ func TestHandler_createField(t *testing.T) {
 			CropID:   1,
 		}
 
+		expectedField := models.Field{
+			ID:       1,
+			Name:     "Північне поле",
+			Area:     10.5,
+			Location: "50.1, 30.2",
+			CropID:   1,
+		}
+
 		mockFieldService.On("Create", mock.MatchedBy(func(f models.Field) bool {
 			return f.Name == input.Name && f.CropID == input.CropID
-		})).Return(1, nil).Once()
+		})).Return(expectedField, nil).Once()
 
 		jsonInput, _ := json.Marshal(input)
 		req, _ := http.NewRequest("POST", "/fields", bytes.NewBuffer(jsonInput))
@@ -49,6 +57,7 @@ func TestHandler_createField(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), `"id":1`)
+		assert.Contains(t, w.Body.String(), `"name":"Північне поле"`)
 	})
 
 	t.Run("Crop_Not_Found_Error", func(t *testing.T) {
@@ -63,7 +72,7 @@ func TestHandler_createField(t *testing.T) {
 
 		// Емулюємо помилку бізнес-логіки (культури не існує)
 		mockFieldService.On("Create", mock.Anything).
-			Return(0, errors.New("cannot create field: crop with id 999 not found")).Once()
+			Return(models.Field{}, errors.New("cannot create field: crop with id 999 not found")).Once()
 
 		jsonInput, _ := json.Marshal(input)
 		req, _ := http.NewRequest("POST", "/fields", bytes.NewBuffer(jsonInput))

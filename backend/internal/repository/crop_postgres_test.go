@@ -21,9 +21,11 @@ func TestCropRepository_Lifecycle(t *testing.T) {
 	}
 
 	// Create
-	id, err := repo.Create(newCrop)
+	crop, err := repo.Create(newCrop)
 	assert.NoError(t, err)
-	assert.Greater(t, id, 0)
+	assert.Greater(t, crop.ID, 0)
+
+	id := crop.ID
 
 	// GetByID
 	found, err := repo.GetByID(id)

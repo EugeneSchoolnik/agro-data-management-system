@@ -17,8 +17,10 @@ func TestSensorRepository_Lifecycle(t *testing.T) {
 	sensorRepo := NewSensorPostgres(db)
 
 	// 1. Готуємо інфраструктуру: Культура -> Поле
-	cropID, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
-	fieldID, _ := fieldRepo.Create(models.Field{Name: "Ділянка А", CropID: cropID})
+	crop, _ := cropRepo.Create(models.Crop{Name: "Пшениця"})
+	cropID := crop.ID
+	field, _ := fieldRepo.Create(models.Field{Name: "Ділянка А", CropID: cropID})
+	fieldID := field.ID
 
 	// 2. ТЕСТ: Створення датчика
 	newSensor := models.Sensor{
@@ -27,9 +29,11 @@ func TestSensorRepository_Lifecycle(t *testing.T) {
 		Status:     "active",
 	}
 
-	sensorID, err := sensorRepo.Create(newSensor)
+	sensor, err := sensorRepo.Create(newSensor)
 	assert.NoError(t, err)
-	assert.Greater(t, sensorID, 0)
+	assert.Greater(t, sensor.ID, 0)
+
+	sensorID := sensor.ID
 
 	// 3. ТЕСТ: Отримання списку датчиків для поля
 	sensors, err := sensorRepo.GetByFieldID(fieldID)

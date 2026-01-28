@@ -33,7 +33,8 @@ func TestHandler_createCrop(t *testing.T) {
 
 		// Вхідні дані
 		input := models.Crop{Name: "Пшениця", Variety: "Скарбниця"}
-		mockCropService.On("Create", input).Return(1, nil).Once()
+		expectedCrop := models.Crop{ID: 1, Name: "Пшениця", Variety: "Скарбниця"}
+		mockCropService.On("Create", input).Return(expectedCrop, nil).Once()
 
 		// Формуємо запит
 		jsonInput, _ := json.Marshal(input)
@@ -46,6 +47,8 @@ func TestHandler_createCrop(t *testing.T) {
 		// Перевірки
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), `"id":1`)
+		assert.Contains(t, w.Body.String(), `"name":"Пшениця"`)
+		assert.Contains(t, w.Body.String(), `"variety":"Скарбниця"`)
 		mockCropService.AssertExpectations(t)
 	})
 

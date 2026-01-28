@@ -22,13 +22,13 @@ func (h *Handler) saveMetric(c *gin.Context) {
 		input.RecordedAt = time.Now().UTC()
 	}
 
-	id, err := h.services.Metric.Save(input)
+	metric, err := h.services.Metric.Save(input)
 	if err != nil {
 		h.newErrorResponse(c, http.StatusBadRequest, err.Error())
 		return
 	}
 
-	h.newSuccessResponse(c, gin.H{"id": id})
+	h.newSuccessResponse(c, metric)
 }
 
 // getLatestMetric — останнє значення конкретного датчика

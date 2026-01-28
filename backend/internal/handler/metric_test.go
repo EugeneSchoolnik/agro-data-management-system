@@ -33,9 +33,15 @@ func TestHandler_saveMetric(t *testing.T) {
 			Value:    24.5,
 		}
 
+		expectedMetric := models.Metric{
+			ID:       1,
+			SensorID: 1,
+			Value:    24.5,
+		}
+
 		mockSrv.On("Save", mock.MatchedBy(func(m models.Metric) bool {
 			return m.SensorID == 1 && m.Value == 24.5
-		})).Return(int64(1), nil).Once()
+		})).Return(expectedMetric, nil).Once()
 
 		jsonInput, _ := json.Marshal(input)
 		req, _ := http.NewRequest("POST", "/metrics", bytes.NewBuffer(jsonInput))
@@ -45,6 +51,8 @@ func TestHandler_saveMetric(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, w.Code)
 		assert.Contains(t, w.Body.String(), `"id":1`)
+		assert.Contains(t, w.Body.String(), `"sensor_id":1`)
+		assert.Contains(t, w.Body.String(), `"value":24.5`)
 	})
 
 	t.Run("Inactive_Sensor_Error", func(t *testing.T) {
@@ -55,7 +63,7 @@ func TestHandler_saveMetric(t *testing.T) {
 
 		// Емулюємо помилку від сервісу (наприклад, датчик вимкнено)
 		mockSrv.On("Save", mock.Anything).
-			Return(int64(0), assert.AnError).Once()
+			Return(models.Metric{}, assert.AnError).Once()
 
 		body, _ := json.Marshal(models.Metric{SensorID: 2, Value: 10.0})
 		req, _ := http.NewRequest("POST", "/metrics", bytes.NewBuffer(body))

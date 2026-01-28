@@ -49,7 +49,9 @@ func setupTestDB(t *testing.T, tables ...string) *sqlx.DB {
 	cfg := initTestConfig(t)
 
 	db, err := NewPostgresDB(config.DBConfig(cfg.TestDatabase))
-	require.NoError(t, err, "failed to connect to test db")
+	if err != nil {
+		t.Skipf("skipping database tests: %v", err)
+	}
 
 	// Очищуємо передані таблиці для ізоляції тесту
 	if len(tables) > 0 {

@@ -63,7 +63,7 @@ func TestForecastService_Predict(t *testing.T) {
 		// Очікуємо, що сервіс збереже результат у БД
 		fRepo.On("Create", mock.MatchedBy(func(f models.Forecast) bool {
 			return f.Probability == 0.85 && f.FieldID == fieldID
-		})).Return(100, nil).Once()
+		})).Return(models.Forecast{ID: 100, Probability: 0.85, FieldID: fieldID, Recommendation: "Термінова обробка: високий ризик E. integriceps"}, nil).Once()
 
 		// 4. Викликаємо метод, який тестуємо
 		result, err := srv.Predict(fieldID, pestID)

@@ -10,7 +10,7 @@ import (
 )
 
 type SensorService interface {
-	Register(sensor models.Sensor) (int, error)
+	Register(sensor models.Sensor) (models.Sensor, error)
 	GetByID(id int) (models.Sensor, error)
 	GetByField(fieldID int) ([]models.Sensor, error)
 	UpdateStatus(id int, status models.SensorStatus) error
@@ -33,33 +33,33 @@ func NewSensorService(sr repository.SensorRepository, fr repository.FieldReposit
 	}
 }
 
-func (s *sensorService) Register(sensor models.Sensor) (int, error) {
+func (s *sensorService) Register(sensor models.Sensor) (models.Sensor, error) {
 	// 1. Валідація структури
 	if err := s.validate.Struct(sensor); err != nil {
-		return 0, fmt.Errorf("sensor validation failed: %w", err)
+		return sensor, fmt.Errorf("sensor validation failed: %w", err)
 	}
 
 	// 2. Перевірка статусу через метод моделі
 	if err := sensor.Status.IsValid(); err != nil {
-		return 0, err
+		return sensor, err
 	}
 
 	// 3. БІЗНЕС-ЛОГІКА: Чи існує поле, куди ми ставимо датчик?
 	_, err := s.fieldRepo.GetByIDWithCrop(sensor.FieldID)
 	if err != nil {
 		s.log.Warn("Attempt to register sensor for unknown field", zap.Int("field_id", sensor.FieldID))
-		return 0, fmt.Errorf("field %d not found", sensor.FieldID)
+		return sensor, fmt.Errorf("field %d not found", sensor.FieldID)
 	}
 
 	// 4. Збереження
-	id, err := s.sensorRepo.Create(sensor)
+	sensorCreated, err := s.sensorRepo.Create(sensor)
 	if err != nil {
 		s.log.Error("Failed to register sensor", zap.Error(err))
-		return 0, err
+		return sensor, err
 	}
 
-	s.log.Info("Sensor registered", zap.Int("id", id), zap.String("type", sensor.SensorType))
-	return id, nil
+	s.log.Info("Sensor registered", zap.Int("id", sensorCreated.ID), zap.String("type", sensorCreated.SensorType))
+	return sensorCreated, nil
 }
 
 func (s *sensorService) GetByID(id int) (models.Sensor, error) {

@@ -36,7 +36,7 @@ func TestHandler_registerSensor(t *testing.T) {
 
 		mockSrv.On("Register", mock.MatchedBy(func(s models.Sensor) bool {
 			return s.FieldID == 1 && s.SensorType == "DHT22"
-		})).Return(101, nil).Once()
+		})).Return(models.Sensor{ID: 101, FieldID: 1, SensorType: "DHT22", Status: models.StatusActive}, nil).Once()
 
 		jsonInput, _ := json.Marshal(input)
 		req, _ := http.NewRequest("POST", "/sensors", bytes.NewBuffer(jsonInput))
@@ -55,7 +55,7 @@ func TestHandler_registerSensor(t *testing.T) {
 		r.POST("/sensors", h.registerSensor)
 
 		mockSrv.On("Register", mock.Anything).
-			Return(0, errors.New("field 404 not found")).Once()
+			Return(models.Sensor{}, errors.New("field 404 not found")).Once()
 
 		body, _ := json.Marshal(models.Sensor{FieldID: 404, SensorType: "DHT22", Status: models.StatusActive})
 		req, _ := http.NewRequest("POST", "/sensors", bytes.NewBuffer(body))

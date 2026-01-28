@@ -14,22 +14,22 @@ type CropService struct {
 }
 
 // Create provides a mock function with given fields: crop
-func (_m *CropService) Create(crop models.Crop) (int, error) {
+func (_m *CropService) Create(crop models.Crop) (models.Crop, error) {
 	ret := _m.Called(crop)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Create")
 	}
 
-	var r0 int
+	var r0 models.Crop
 	var r1 error
-	if rf, ok := ret.Get(0).(func(models.Crop) (int, error)); ok {
+	if rf, ok := ret.Get(0).(func(models.Crop) (models.Crop, error)); ok {
 		return rf(crop)
 	}
-	if rf, ok := ret.Get(0).(func(models.Crop) int); ok {
+	if rf, ok := ret.Get(0).(func(models.Crop) models.Crop); ok {
 		r0 = rf(crop)
 	} else {
-		r0 = ret.Get(0).(int)
+		r0 = ret.Get(0).(models.Crop)
 	}
 
 	if rf, ok := ret.Get(1).(func(models.Crop) error); ok {

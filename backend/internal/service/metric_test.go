@@ -28,12 +28,12 @@ func TestMetricService_Save(t *testing.T) {
 
 		// Датчик існує і він Active
 		sRepo.On("GetByID", 1).Return(models.Sensor{ID: 1, Status: models.StatusActive}, nil).Once()
-		mRepo.On("Create", m).Return(int64(500), nil).Once()
+		mRepo.On("Create", m).Return(models.Metric{ID: 500, SensorID: 1, Value: 25.5}, nil).Once()
 
-		id, err := srv.Save(m)
+		result, err := srv.Save(m)
 
 		assert.NoError(t, err)
-		assert.Equal(t, int64(500), id)
+		assert.Equal(t, models.Metric{ID: 500, SensorID: 1, Value: 25.5}, result)
 		mock.AssertExpectationsForObjects(t, mRepo, sRepo)
 	})
 
@@ -44,11 +44,11 @@ func TestMetricService_Save(t *testing.T) {
 		// Датчик в статусі ERROR або INACTIVE
 		sRepo.On("GetByID", 1).Return(models.Sensor{ID: 1, Status: models.StatusError}, nil).Once()
 
-		id, err := srv.Save(m)
+		result, err := srv.Save(m)
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "is not active")
-		assert.Equal(t, int64(0), id)
+		assert.Equal(t, m, result)
 		// Репозиторій метрик НЕ повинен викликатися
 		mRepo.AssertNotCalled(t, "Create", mock.Anything)
 	})

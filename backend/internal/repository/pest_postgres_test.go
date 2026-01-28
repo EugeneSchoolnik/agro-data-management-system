@@ -1,8 +1,9 @@
 package repository
 
 import (
-	"testing"
 	"agro-data-management-system/internal/models"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
@@ -17,9 +18,10 @@ func TestPestRepository_Lifecycle(t *testing.T) {
 		Name:           "Клоп шкідлива черепашка",
 		ScientificName: "Eurygaster integriceps",
 	}
-	id, err := repo.Create(newPest)
+	createdPest, err := repo.Create(newPest)
 	assert.NoError(t, err)
-	assert.Greater(t, id, 0)
+	assert.Greater(t, createdPest.ID, 0)
+	id := createdPest.ID
 
 	// 2. GetByID
 	found, err := repo.GetByID(id)
