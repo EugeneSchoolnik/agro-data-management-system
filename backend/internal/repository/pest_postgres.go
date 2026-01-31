@@ -42,7 +42,7 @@ func (r *PestPostgres) GetByID(id int) (models.Pest, error) {
 }
 
 func (r *PestPostgres) GetAll() ([]models.Pest, error) {
-	var pests []models.Pest
+	pests := []models.Pest{}
 	query := `SELECT id, name, scientific_name FROM pests ORDER BY name ASC`
 	err := r.db.Select(&pests, query)
 	return pests, err

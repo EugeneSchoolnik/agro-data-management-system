@@ -5,6 +5,8 @@ package mocks
 import (
 	models "agro-data-management-system/internal/models"
 
+	time "time"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -92,6 +94,34 @@ func (_m *ForecastRepository) GetHistoryByField(fieldID int) ([]models.Forecast,
 
 	if rf, ok := ret.Get(1).(func(int) error); ok {
 		r1 = rf(fieldID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetForecastStatisticsByField provides a mock function with given fields: fieldID, from, to
+func (_m *ForecastRepository) GetForecastStatisticsByField(fieldID int, from time.Time, to time.Time) (models.ForecastStats, error) {
+	ret := _m.Called(fieldID, from, to)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetForecastStatisticsByField")
+	}
+
+	var r0 models.ForecastStats
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int, time.Time, time.Time) (models.ForecastStats, error)); ok {
+		return rf(fieldID, from, to)
+	}
+	if rf, ok := ret.Get(0).(func(int, time.Time, time.Time) models.ForecastStats); ok {
+		r0 = rf(fieldID, from, to)
+	} else {
+		r0 = ret.Get(0).(models.ForecastStats)
+	}
+
+	if rf, ok := ret.Get(1).(func(int, time.Time, time.Time) error); ok {
+		r1 = rf(fieldID, from, to)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -14,6 +14,7 @@ type Services struct {
 	Metric   MetricService
 	Pest     PestService
 	Forecast ForecastService
+	Report   ReportService
 }
 
 // Dependencies — допоміжна структура для ініціалізації
@@ -32,10 +33,13 @@ func NewServices(deps Dependencies) *Services {
 	pestSrv := NewPestService(deps.Repos.Pest, deps.Log)
 	metricSrv := NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log)
 
+	reportSrv := NewReportService(deps.Repos.Field, deps.Repos.Metric, deps.Repos.Forecast, deps.Log)
+
 	forecastSrv := NewForecastService(
 		deps.Repos.Forecast,
 		metricSrv,
 		fieldSrv,
+		sensorSrv,
 		pestSrv,
 		deps.AiURL,
 		deps.Log,
@@ -48,5 +52,6 @@ func NewServices(deps Dependencies) *Services {
 		Metric:   metricSrv,
 		Pest:     pestSrv,
 		Forecast: forecastSrv,
+		Report:   reportSrv,
 	}
 }

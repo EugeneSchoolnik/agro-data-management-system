@@ -22,7 +22,13 @@ func TestForecastService_Predict(t *testing.T) {
 		// Перевіряємо, чи правильний шлях запиту
 		assert.Equal(t, "/predict", r.URL.Path)
 
-		// Повертаємо фейкову відповідь від "нейромережі"
+		var req models.ForecastRequest
+		assert.NoError(t, json.NewDecoder(r.Body).Decode(&req))
+		assert.Equal(t, "Пшениця", req.CropName)
+		assert.Equal(t, "Скарбниця", req.Variety)
+		assert.Equal(t, "Eurygaster integriceps", req.PestName)
+		assert.Equal(t, []float64{22.0, 60.0, 30.0, 3.0}, req.Metrics)
+
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(models.ForecastResponse{
 			Probability:    0.85,
@@ -35,11 +41,12 @@ func TestForecastService_Predict(t *testing.T) {
 	fRepo := new(repoMocks.ForecastRepository)
 	mSrv := new(serviceMocks.MetricService)
 	fieldSrv := new(serviceMocks.FieldService)
+	sensorSrv := new(serviceMocks.SensorService)
 	pestSrv := new(serviceMocks.PestService)
 	log := zap.NewNop()
 
 	// Передаємо URL нашого фейкового сервера як aiURL
-	srv := NewForecastService(fRepo, mSrv, fieldSrv, pestSrv, mockAI.URL, log)
+	srv := NewForecastService(fRepo, mSrv, fieldSrv, sensorSrv, pestSrv, mockAI.URL, log)
 
 	t.Run("Full_Success_Flow", func(t *testing.T) {
 		fieldID, pestID := 1, 2
@@ -56,9 +63,20 @@ func TestForecastService_Predict(t *testing.T) {
 			ScientificName: "Eurygaster integriceps",
 		}, nil).Once()
 
-		mSrv.On("GetHistory", fieldID, mock.Anything, mock.Anything).Return([]models.Metric{
-			{Value: 22.5}, {Value: 23.0},
+		sensorSrv.On("GetByField", fieldID).Return([]models.Sensor{
+			{ID: 10, SensorType: "temperature"},
+			{ID: 11, SensorType: "air_humidity"},
+			{ID: 12, SensorType: "soil_moisture"},
+			{ID: 13, SensorType: "crop_phase"},
 		}, nil).Once()
+
+		mSrv.On("GetHistory", 10, mock.Anything, mock.Anything).Return([]models.Metric{
+			{Value: 20.0},
+			{Value: 24.0},
+		}, nil).Once()
+		mSrv.On("GetHistory", 11, mock.Anything, mock.Anything).Return([]models.Metric{{Value: 60.0}}, nil).Once()
+		mSrv.On("GetHistory", 12, mock.Anything, mock.Anything).Return([]models.Metric{{Value: 30.0}}, nil).Once()
+		mSrv.On("GetHistory", 13, mock.Anything, mock.Anything).Return([]models.Metric{{Value: 3.0}}, nil).Once()
 
 		// Очікуємо, що сервіс збереже результат у БД
 		fRepo.On("Create", mock.MatchedBy(func(f models.Forecast) bool {
@@ -75,6 +93,6 @@ func TestForecastService_Predict(t *testing.T) {
 		assert.Contains(t, result.Recommendation, "високий ризик")
 
 		// Перевіряємо, що всі моки були викликані
-		mock.AssertExpectationsForObjects(t, fRepo, mSrv, fieldSrv, pestSrv)
+		mock.AssertExpectationsForObjects(t, fRepo, mSrv, fieldSrv, sensorSrv, pestSrv)
 	})
 }

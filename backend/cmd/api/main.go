@@ -36,7 +36,7 @@ func main() {
 	deps := service.Dependencies{
 		Repos: repos,
 		Log:   logger,
-		AiURL: "http://localhost:5000", // майбутній Python сервер
+		AiURL: cfg.Forecasting.PythonServiceURL, // майбутній Python сервер
 	}
 	services := service.NewServices(deps)
 

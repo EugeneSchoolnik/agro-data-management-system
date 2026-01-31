@@ -65,7 +65,10 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			// forecast
 			fields.GET("/:id/forecast/latest", h.getLatestForecast)
 		}
-
+		reports := api.Group("/reports")
+		{
+			reports.GET("/fields/:id", h.getFieldReport)
+		}
 		sensors := api.Group("/sensors")
 		{
 			sensors.POST("", h.registerSensor)

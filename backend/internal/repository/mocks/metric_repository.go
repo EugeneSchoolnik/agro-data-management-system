@@ -73,6 +73,36 @@ func (_m *MetricRepository) GetHistoryBySensor(sensorID int, from time.Time, to 
 	return r0, r1
 }
 
+// GetAggregatedMetricsByField provides a mock function with given fields: fieldID, from, to
+func (_m *MetricRepository) GetAggregatedMetricsByField(fieldID int, from time.Time, to time.Time) ([]models.MetricAggregate, error) {
+	ret := _m.Called(fieldID, from, to)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetAggregatedMetricsByField")
+	}
+
+	var r0 []models.MetricAggregate
+	var r1 error
+	if rf, ok := ret.Get(0).(func(int, time.Time, time.Time) ([]models.MetricAggregate, error)); ok {
+		return rf(fieldID, from, to)
+	}
+	if rf, ok := ret.Get(0).(func(int, time.Time, time.Time) []models.MetricAggregate); ok {
+		r0 = rf(fieldID, from, to)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]models.MetricAggregate)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(int, time.Time, time.Time) error); ok {
+		r1 = rf(fieldID, from, to)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetLatestBySensor provides a mock function with given fields: sensorID
 func (_m *MetricRepository) GetLatestBySensor(sensorID int) (models.Metric, error) {
 	ret := _m.Called(sensorID)

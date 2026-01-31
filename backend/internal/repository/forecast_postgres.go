@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"fmt"
 	"time"
 
@@ -14,6 +15,7 @@ type ForecastRepository interface {
 	GetByID(id int) (models.Forecast, error)
 	GetLatestByField(fieldID int) (models.Forecast, error)
 	GetHistoryByField(fieldID int) ([]models.Forecast, error)
+	GetForecastStatisticsByField(fieldID int, from, to time.Time) (models.ForecastStats, error)
 }
 
 type ForecastPostgres struct {
@@ -58,4 +60,21 @@ func (r *ForecastPostgres) GetHistoryByField(fieldID int) ([]models.Forecast, er
 	query := `SELECT * FROM forecasts WHERE field_id = $1 ORDER BY created_at DESC`
 	err := r.db.Select(&forecasts, query, fieldID)
 	return forecasts, err
+}
+
+func (r *ForecastPostgres) GetForecastStatisticsByField(fieldID int, from, to time.Time) (models.ForecastStats, error) {
+	var avg sql.NullFloat64
+	query := `
+SELECT AVG(probability) AS avg_probability
+FROM forecasts
+WHERE field_id = $1
+  AND created_at BETWEEN $2 AND $3`
+	err := r.db.Get(&avg, query, fieldID, from, to)
+	if err != nil {
+		return models.ForecastStats{}, err
+	}
+	if !avg.Valid {
+		return models.ForecastStats{}, nil
+	}
+	return models.ForecastStats{AverageProbability: avg.Float64}, nil
 }

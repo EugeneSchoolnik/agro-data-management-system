@@ -13,6 +13,7 @@ type MetricRepository interface {
 	Create(metric models.Metric) (models.Metric, error)
 	GetLatestBySensor(sensorID int) (models.Metric, error)
 	GetHistoryBySensor(sensorID int, from, to time.Time) ([]models.Metric, error)
+	GetAggregatedMetricsByField(fieldID int, from, to time.Time) ([]models.MetricAggregate, error)
 }
 
 type MetricPostgres struct {
@@ -53,4 +54,21 @@ func (r *MetricPostgres) GetHistoryBySensor(sensorID int, from, to time.Time) ([
               ORDER BY recorded_at ASC`
 	err := r.db.Select(&metrics, query, sensorID, from, to)
 	return metrics, err
+}
+
+func (r *MetricPostgres) GetAggregatedMetricsByField(fieldID int, from, to time.Time) ([]models.MetricAggregate, error) {
+	aggregates := []models.MetricAggregate{}
+	query := `
+SELECT s.sensor_type,
+       AVG(m.value) AS avg_value,
+       MIN(m.value) AS min_value,
+       MAX(m.value) AS max_value
+FROM metrics m
+JOIN sensors s ON m.sensor_id = s.id
+WHERE s.field_id = $1
+  AND s.sensor_type IN ('temperature', 'air_humidity')
+  AND m.recorded_at BETWEEN $2 AND $3
+GROUP BY s.sensor_type`
+	err := r.db.Select(&aggregates, query, fieldID, from, to)
+	return aggregates, err
 }
