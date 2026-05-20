@@ -14,6 +14,7 @@ type Services struct {
 	Metric   MetricService
 	Pest     PestService
 	Forecast ForecastService
+	Weather  WeatherService
 	Report   ReportService
 }
 
@@ -32,6 +33,7 @@ func NewServices(deps Dependencies) *Services {
 	sensorSrv := NewSensorService(deps.Repos.Sensor, deps.Repos.Field, deps.Log)
 	pestSrv := NewPestService(deps.Repos.Pest, deps.Log)
 	metricSrv := NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log)
+	weatherSrv := NewWeatherService(deps.Repos.Weather, deps.Log)
 
 	reportSrv := NewReportService(deps.Repos.Field, deps.Repos.Metric, deps.Repos.Forecast, deps.Log)
 
@@ -52,6 +54,7 @@ func NewServices(deps Dependencies) *Services {
 		Metric:   metricSrv,
 		Pest:     pestSrv,
 		Forecast: forecastSrv,
+		Weather:  weatherSrv,
 		Report:   reportSrv,
 	}
 }

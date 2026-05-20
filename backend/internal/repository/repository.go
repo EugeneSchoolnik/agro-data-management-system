@@ -11,6 +11,7 @@ type Repositories struct {
 	Metric   MetricRepository
 	Pest     PestRepository
 	Forecast ForecastRepository
+	Weather  WeatherRepository
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -21,5 +22,6 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Metric:   NewMetricPostgres(db),
 		Pest:     NewPestPostgres(db),
 		Forecast: NewForecastPostgres(db),
+		Weather:  NewWeatherPostgres(db),
 	}
 }
