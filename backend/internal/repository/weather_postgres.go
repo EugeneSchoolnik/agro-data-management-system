@@ -10,6 +10,7 @@ import (
 type WeatherRepository interface {
 	CreateParameter(param models.WeatherParameter) (models.WeatherParameter, error)
 	GetParameterByParamID(paramID int) (models.WeatherParameter, error)
+	GetParameterByID(id int) (models.WeatherParameter, error)
 	CreateStation(station models.WeatherStation) (models.WeatherStation, error)
 	GetStationByExternalID(externalID int) (models.WeatherStation, error)
 	GetAllStations() ([]models.WeatherStation, error)
@@ -40,6 +41,13 @@ func (r *WeatherPostgres) GetParameterByParamID(paramID int) (models.WeatherPara
 	var param models.WeatherParameter
 	query := `SELECT * FROM weather_parameters WHERE param_id = $1`
 	err := r.db.Get(&param, query, paramID)
+	return param, err
+}
+
+func (r *WeatherPostgres) GetParameterByID(id int) (models.WeatherParameter, error) {
+	var param models.WeatherParameter
+	query := `SELECT * FROM weather_parameters WHERE id = $1`
+	err := r.db.Get(&param, query, id)
 	return param, err
 }
 

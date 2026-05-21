@@ -1,9 +1,11 @@
 package handler
 
 import (
+	"agro-data-management-system/internal/models"
 	"agro-data-management-system/internal/service"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,17 @@ import (
 type Handler struct {
 	services *service.Services
 	log      *zap.Logger
+}
+
+type weatherObservationResponse struct {
+	ID                 int64                   `json:"id"`
+	StationID          int                     `json:"station_id"`
+	WeatherParameterID int                     `json:"weather_parameter_id"`
+	StationParam       int                     `json:"station_param"`
+	Value              float64                 `json:"value"`
+	RecordedAt         time.Time               `json:"recorded_at"`
+	CreatedAt          time.Time               `json:"created_at"`
+	Parameter          models.WeatherParameter `json:"weather_parameter"`
 }
 
 func NewHandler(services *service.Services, log *zap.Logger) *Handler {
@@ -91,6 +104,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 		{
 			weather.GET("/stations", h.getWeatherStations)
 			weather.GET("/stations/:external_id/observations", h.getWeatherStationObservations)
+			weather.GET("/stations/:external_id/summary", h.getWeatherStationSummary)
 			weather.POST("/sync/station/:external_id", h.syncWeatherStation)
 			weather.POST("/sync/field/:field_id", h.syncWeatherField)
 		}
@@ -166,7 +180,49 @@ func (h *Handler) getWeatherStationObservations(c *gin.Context) {
 		return
 	}
 
-	h.newSuccessResponse(c, observations)
+	parameterCache := make(map[int]models.WeatherParameter)
+	responses := make([]weatherObservationResponse, 0, len(observations))
+
+	for _, obs := range observations {
+		param, ok := parameterCache[obs.WeatherParameterID]
+		if !ok {
+			param, err = h.services.Weather.GetParameterByID(obs.WeatherParameterID)
+			if err != nil {
+				h.newErrorResponse(c, http.StatusInternalServerError, "failed to load weather parameter metadata")
+				return
+			}
+			parameterCache[obs.WeatherParameterID] = param
+		}
+
+		responses = append(responses, weatherObservationResponse{
+			ID:                 obs.ID,
+			StationID:          obs.StationID,
+			WeatherParameterID: obs.WeatherParameterID,
+			StationParam:       obs.StationParam,
+			Value:              obs.Value,
+			RecordedAt:         obs.RecordedAt,
+			CreatedAt:          obs.CreatedAt,
+			Parameter:          param,
+		})
+	}
+
+	h.newSuccessResponse(c, responses)
+}
+
+func (h *Handler) getWeatherStationSummary(c *gin.Context) {
+	externalID, err := strconv.Atoi(c.Param("external_id"))
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, "invalid station external_id")
+		return
+	}
+
+	summary, err := h.services.Weather.GetStationWeatherSummary(externalID)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, "failed to get station weather summary")
+		return
+	}
+
+	h.newSuccessResponse(c, summary)
 }
 
 func (h *Handler) syncWeatherStation(c *gin.Context) {

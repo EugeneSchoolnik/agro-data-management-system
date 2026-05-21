@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"sort"
 	"time"
 
 	"agro-data-management-system/internal/models"
@@ -17,6 +18,8 @@ type WeatherService interface {
 	ListStations() ([]models.WeatherStation, error)
 	GetLatestObservations(stationID int) ([]models.WeatherObservation, error)
 	GetParameterByParamID(paramID int) (models.WeatherParameter, error)
+	GetParameterByID(id int) (models.WeatherParameter, error)
+	GetStationWeatherSummary(externalID int) (models.WeatherStationSummary, error)
 	GetStationByExternalID(externalID int) (models.WeatherStation, error)
 	SyncStation(ctx context.Context, externalID int) ([]models.WeatherObservation, error)
 	SyncField(ctx context.Context, fieldID int) ([]models.WeatherObservation, error)
@@ -45,8 +48,64 @@ func (s *weatherService) GetParameterByParamID(paramID int) (models.WeatherParam
 	return s.repo.GetParameterByParamID(paramID)
 }
 
+func (s *weatherService) GetParameterByID(id int) (models.WeatherParameter, error) {
+	return s.repo.GetParameterByID(id)
+}
+
 func (s *weatherService) GetStationByExternalID(externalID int) (models.WeatherStation, error) {
 	return s.repo.GetStationByExternalID(externalID)
+}
+
+func (s *weatherService) GetStationWeatherSummary(externalID int) (models.WeatherStationSummary, error) {
+	station, err := s.repo.GetStationByExternalID(externalID)
+	if err != nil {
+		return models.WeatherStationSummary{}, err
+	}
+
+	observations, err := s.repo.GetLatestObservationsByStation(station.ID)
+	if err != nil {
+		return models.WeatherStationSummary{}, err
+	}
+
+	latestByParam := make(map[int]models.WeatherObservation)
+	for _, obs := range observations {
+		if _, ok := latestByParam[obs.WeatherParameterID]; ok {
+			continue
+		}
+		latestByParam[obs.WeatherParameterID] = obs
+	}
+
+	published := make([]models.WeatherParameterSummary, 0, len(latestByParam))
+	var updatedAt time.Time
+
+	for _, obs := range latestByParam {
+		param, err := s.repo.GetParameterByID(obs.WeatherParameterID)
+		if err != nil {
+			s.log.Warn("Unknown weather parameter", zap.Int("weather_parameter_id", obs.WeatherParameterID), zap.Error(err))
+			continue
+		}
+
+		if obs.RecordedAt.After(updatedAt) {
+			updatedAt = obs.RecordedAt
+		}
+
+		published = append(published, models.WeatherParameterSummary{
+			Parameter:    param,
+			Value:        obs.Value,
+			StationParam: obs.StationParam,
+			RecordedAt:   obs.RecordedAt,
+		})
+	}
+
+	sort.Slice(published, func(i, j int) bool {
+		return published[i].Parameter.ParamID < published[j].Parameter.ParamID
+	})
+
+	return models.WeatherStationSummary{
+		Station:   station,
+		Latest:    published,
+		UpdatedAt: updatedAt,
+	}, nil
 }
 
 func (s *weatherService) SyncStation(ctx context.Context, externalID int) ([]models.WeatherObservation, error) {
