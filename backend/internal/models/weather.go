@@ -44,8 +44,28 @@ type WeatherParameterSummary struct {
 	RecordedAt   time.Time        `json:"recorded_at"`
 }
 
+type WeatherParameterAggregate struct {
+	Parameter WeatherParameter `json:"parameter"`
+	Average   float64          `json:"average"`
+	Min       float64          `json:"min"`
+	Max       float64          `json:"max"`
+	Count     int              `json:"count"`
+}
+
+type HourlyTrendPoint struct {
+	Hour  time.Time `json:"hour"`
+	Value float64   `json:"value"`
+}
+
+type WeatherParameterTrend struct {
+	Parameter WeatherParameter   `json:"parameter"`
+	Points    []HourlyTrendPoint `json:"points"`
+}
+
 type WeatherStationSummary struct {
-	Station   WeatherStation            `json:"station"`
-	Latest    []WeatherParameterSummary `json:"latest"`
-	UpdatedAt time.Time                 `json:"updated_at"`
+	Station     WeatherStation              `json:"station"`
+	Latest      []WeatherParameterSummary   `json:"latest"`
+	Daily       []WeatherParameterAggregate `json:"daily"`
+	HourlyTrend []WeatherParameterTrend     `json:"hourly_trend"`
+	UpdatedAt   time.Time                   `json:"updated_at"`
 }

@@ -3,6 +3,7 @@ package repository
 import (
 	"agro-data-management-system/internal/models"
 	"fmt"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,6 +19,7 @@ type WeatherRepository interface {
 	CreateStationParameter(mapping models.WeatherStationParameter) (models.WeatherStationParameter, error)
 	CreateObservation(obs models.WeatherObservation) (models.WeatherObservation, error)
 	GetLatestObservationsByStation(stationID int) ([]models.WeatherObservation, error)
+	GetObservationsByStationAndRecordedAtRange(stationID int, start, end time.Time) ([]models.WeatherObservation, error)
 }
 
 type WeatherPostgres struct {
@@ -103,5 +105,12 @@ func (r *WeatherPostgres) GetLatestObservationsByStation(stationID int) ([]model
 	var observations []models.WeatherObservation
 	query := `SELECT * FROM weather_observations WHERE station_id = $1 ORDER BY recorded_at DESC LIMIT 100`
 	err := r.db.Select(&observations, query, stationID)
+	return observations, err
+}
+
+func (r *WeatherPostgres) GetObservationsByStationAndRecordedAtRange(stationID int, start, end time.Time) ([]models.WeatherObservation, error) {
+	var observations []models.WeatherObservation
+	query := `SELECT * FROM weather_observations WHERE station_id = $1 AND recorded_at >= $2 AND recorded_at <= $3 ORDER BY recorded_at ASC`
+	err := r.db.Select(&observations, query, stationID, start, end)
 	return observations, err
 }
