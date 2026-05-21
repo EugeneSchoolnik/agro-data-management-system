@@ -12,6 +12,8 @@ type WeatherRepository interface {
 	GetParameterByParamID(paramID int) (models.WeatherParameter, error)
 	CreateStation(station models.WeatherStation) (models.WeatherStation, error)
 	GetStationByExternalID(externalID int) (models.WeatherStation, error)
+	GetAllStations() ([]models.WeatherStation, error)
+	GetStationParameter(stationID, weatherParameterID int) (models.WeatherStationParameter, error)
 	CreateStationParameter(mapping models.WeatherStationParameter) (models.WeatherStationParameter, error)
 	CreateObservation(obs models.WeatherObservation) (models.WeatherObservation, error)
 	GetLatestObservationsByStation(stationID int) ([]models.WeatherObservation, error)
@@ -55,6 +57,20 @@ func (r *WeatherPostgres) GetStationByExternalID(externalID int) (models.Weather
 	query := `SELECT * FROM weather_stations WHERE external_id = $1`
 	err := r.db.Get(&station, query, externalID)
 	return station, err
+}
+
+func (r *WeatherPostgres) GetAllStations() ([]models.WeatherStation, error) {
+	var stations []models.WeatherStation
+	query := `SELECT * FROM weather_stations ORDER BY external_id`
+	err := r.db.Select(&stations, query)
+	return stations, err
+}
+
+func (r *WeatherPostgres) GetStationParameter(stationID, weatherParameterID int) (models.WeatherStationParameter, error) {
+	var mapping models.WeatherStationParameter
+	query := `SELECT * FROM weather_station_parameters WHERE station_id = $1 AND weather_parameter_id = $2`
+	err := r.db.Get(&mapping, query, stationID, weatherParameterID)
+	return mapping, err
 }
 
 func (r *WeatherPostgres) CreateStationParameter(mapping models.WeatherStationParameter) (models.WeatherStationParameter, error) {

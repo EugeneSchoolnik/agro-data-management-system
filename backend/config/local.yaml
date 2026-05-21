@@ -9,3 +9,7 @@ test_database:
   host: "localhost"
 forecasting:
   python_service_url: "http://localhost:8000"
+weather_api:
+  base_url: "https://api.meteotrek.ua"
+  login: ""
+  password: ""

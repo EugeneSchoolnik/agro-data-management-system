@@ -3,6 +3,7 @@ package handler
 import (
 	"agro-data-management-system/internal/service"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -86,6 +87,14 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			metrics.POST("", h.saveMetric)
 		}
 
+		weather := api.Group("/weather")
+		{
+			weather.GET("/stations", h.getWeatherStations)
+			weather.GET("/stations/:external_id/observations", h.getWeatherStationObservations)
+			weather.POST("/sync/station/:external_id", h.syncWeatherStation)
+			weather.POST("/sync/field/:field_id", h.syncWeatherField)
+		}
+
 		pests := api.Group("/pests")
 		{
 			pests.POST("", h.createPest)
@@ -127,4 +136,67 @@ func (h *Handler) loggingMiddleware() gin.HandlerFunc {
 		)
 		c.Next()
 	}
+}
+
+func (h *Handler) getWeatherStations(c *gin.Context) {
+	stations, err := h.services.Weather.ListStations()
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, "failed to list weather stations")
+		return
+	}
+	h.newSuccessResponse(c, stations)
+}
+
+func (h *Handler) getWeatherStationObservations(c *gin.Context) {
+	externalID, err := strconv.Atoi(c.Param("external_id"))
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, "invalid station external_id")
+		return
+	}
+
+	station, err := h.services.Weather.GetStationByExternalID(externalID)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusNotFound, "station not found")
+		return
+	}
+
+	observations, err := h.services.Weather.GetLatestObservations(station.ID)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, "failed to get observations")
+		return
+	}
+
+	h.newSuccessResponse(c, observations)
+}
+
+func (h *Handler) syncWeatherStation(c *gin.Context) {
+	externalID, err := strconv.Atoi(c.Param("external_id"))
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, "invalid station external_id")
+		return
+	}
+
+	observations, err := h.services.Weather.SyncStation(c.Request.Context(), externalID)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, "weather station sync failed")
+		return
+	}
+
+	h.newSuccessResponse(c, observations)
+}
+
+func (h *Handler) syncWeatherField(c *gin.Context) {
+	fieldID, err := strconv.Atoi(c.Param("field_id"))
+	if err != nil {
+		h.newErrorResponse(c, http.StatusBadRequest, "invalid field_id")
+		return
+	}
+
+	observations, err := h.services.Weather.SyncField(c.Request.Context(), fieldID)
+	if err != nil {
+		h.newErrorResponse(c, http.StatusInternalServerError, "weather field sync failed")
+		return
+	}
+
+	h.newSuccessResponse(c, observations)
 }

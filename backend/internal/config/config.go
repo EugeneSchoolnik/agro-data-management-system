@@ -10,10 +10,17 @@ import (
 )
 
 type Config struct {
-	Server       HTTPServer   `yaml:"server"`
-	Database     DBConfig     `yaml:"database"`
-	TestDatabase TestDatabase `yaml:"test_database"`
-	Forecasting  AIConfig     `yaml:"forecasting"`
+	Server       HTTPServer       `yaml:"server"`
+	Database     DBConfig         `yaml:"database"`
+	TestDatabase TestDatabase     `yaml:"test_database"`
+	Forecasting  AIConfig         `yaml:"forecasting"`
+	WeatherAPI   WeatherAPIConfig `yaml:"weather_api"`
+}
+
+type WeatherAPIConfig struct {
+	BaseURL  string `yaml:"base_url" env-default:"https://api.meteotrek.ua"`
+	Login    string `yaml:"login" env:"WEATHER_API_LOGIN"`
+	Password string `yaml:"password" env:"WEATHER_API_PASSWORD"`
 }
 
 type HTTPServer struct {

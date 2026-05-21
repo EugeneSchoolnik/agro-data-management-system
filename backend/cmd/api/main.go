@@ -34,9 +34,12 @@ func main() {
 	repos := repository.NewRepositories(db)
 
 	deps := service.Dependencies{
-		Repos: repos,
-		Log:   logger,
-		AiURL: cfg.Forecasting.PythonServiceURL, // майбутній Python сервер
+		Repos:              repos,
+		Log:                logger,
+		AiURL:              cfg.Forecasting.PythonServiceURL, // майбутній Python сервер
+		WeatherAPIURL:      cfg.WeatherAPI.BaseURL,
+		WeatherAPILogin:    cfg.WeatherAPI.Login,
+		WeatherAPIPassword: cfg.WeatherAPI.Password,
 	}
 	services := service.NewServices(deps)
 

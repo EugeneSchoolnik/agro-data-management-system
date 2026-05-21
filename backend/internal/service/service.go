@@ -2,6 +2,7 @@ package service
 
 import (
 	"agro-data-management-system/internal/repository"
+	"agro-data-management-system/internal/weatherapi"
 
 	"go.uber.org/zap"
 )
@@ -20,9 +21,12 @@ type Services struct {
 
 // Dependencies — допоміжна структура для ініціалізації
 type Dependencies struct {
-	Repos *repository.Repositories
-	Log   *zap.Logger
-	AiURL string
+	Repos              *repository.Repositories
+	Log                *zap.Logger
+	AiURL              string
+	WeatherAPIURL      string
+	WeatherAPILogin    string
+	WeatherAPIPassword string
 }
 
 // NewServices ініціалізує всі сервіси та повертає їх як єдиний об'єкт
@@ -33,7 +37,8 @@ func NewServices(deps Dependencies) *Services {
 	sensorSrv := NewSensorService(deps.Repos.Sensor, deps.Repos.Field, deps.Log)
 	pestSrv := NewPestService(deps.Repos.Pest, deps.Log)
 	metricSrv := NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log)
-	weatherSrv := NewWeatherService(deps.Repos.Weather, deps.Log)
+	weatherAPIClient := weatherapi.NewClient(deps.WeatherAPIURL, deps.WeatherAPILogin, deps.WeatherAPIPassword)
+	weatherSrv := NewWeatherService(deps.Repos.Weather, weatherAPIClient, deps.Log)
 
 	reportSrv := NewReportService(deps.Repos.Field, deps.Repos.Metric, deps.Repos.Forecast, deps.Log)
 
