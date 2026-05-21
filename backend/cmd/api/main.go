@@ -58,6 +58,19 @@ func main() {
 		zap.String("db_name", cfg.Database.Name),
 	)
 
+	syncCtx, syncCancel := context.WithCancel(context.Background())
+	defer syncCancel()
+
+	syncInterval := 30 * time.Minute
+	if intervalStr := os.Getenv("WEATHER_SYNC_INTERVAL"); intervalStr != "" {
+		if d, err := time.ParseDuration(intervalStr); err == nil {
+			syncInterval = d
+		} else {
+			logger.Warn("Invalid WEATHER_SYNC_INTERVAL, using default", zap.String("value", intervalStr), zap.Error(err))
+		}
+	}
+	go services.Weather.StartPeriodicSync(syncCtx, syncInterval)
+
 	go func() {
 		logger.Info("Starting server on port 8080...")
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {

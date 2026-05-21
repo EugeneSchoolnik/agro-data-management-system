@@ -20,6 +20,7 @@ type WeatherService interface {
 	GetStationByExternalID(externalID int) (models.WeatherStation, error)
 	SyncStation(ctx context.Context, externalID int) ([]models.WeatherObservation, error)
 	SyncField(ctx context.Context, fieldID int) ([]models.WeatherObservation, error)
+	StartPeriodicSync(ctx context.Context, interval time.Duration)
 }
 
 type weatherService struct {
@@ -164,6 +165,47 @@ func (s *weatherService) SyncField(ctx context.Context, fieldID int) ([]models.W
 	}
 
 	return saved, nil
+}
+
+func (s *weatherService) StartPeriodicSync(ctx context.Context, interval time.Duration) {
+	if interval <= 0 {
+		interval = 30 * time.Minute
+	}
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	s.log.Info("Weather periodic sync started", zap.Duration("interval", interval))
+	if err := s.syncAllStations(ctx); err != nil {
+		s.log.Error("Weather periodic sync failed", zap.Error(err))
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			s.log.Info("Weather periodic sync stopped")
+			return
+		case <-ticker.C:
+			if err := s.syncAllStations(ctx); err != nil {
+				s.log.Error("Weather periodic sync failed", zap.Error(err))
+			}
+		}
+	}
+}
+
+func (s *weatherService) syncAllStations(ctx context.Context) error {
+	stations, err := s.repo.GetAllStations()
+	if err != nil {
+		return err
+	}
+
+	for _, station := range stations {
+		if _, err := s.SyncStation(ctx, station.ExternalID); err != nil {
+			s.log.Error("Failed to sync weather station", zap.Int("external_id", station.ExternalID), zap.Error(err))
+		}
+	}
+
+	return nil
 }
 
 func parseMeteoTimestamp(value string) (time.Time, error) {
