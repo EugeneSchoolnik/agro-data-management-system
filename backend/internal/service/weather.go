@@ -114,7 +114,7 @@ func (s *weatherService) GetStationWeatherSummary(externalID int) (models.Weathe
 
 	dailyByParam := make(map[int]*aggregate)
 	trendByParam := make(map[int]map[time.Time]*aggregate)
-	trendStart := dayEnd.Add(-6 * time.Hour)
+	trendStart := dayStart // Include all observations from the 24-hour period
 
 	for _, obs := range dailyObservations {
 		agg, ok := dailyByParam[obs.WeatherParameterID]
@@ -177,25 +177,36 @@ func (s *weatherService) GetStationWeatherSummary(externalID int) (models.Weathe
 		return daily[i].Parameter.ParamID < daily[j].Parameter.ParamID
 	})
 
-	hourlyTrend := make([]models.WeatherParameterTrend, 0, len(trendByParam))
-	for paramID, hours := range trendByParam {
+	// Build set of parameter IDs we should report hourly trends for
+	paramIDs := make(map[int]struct{})
+	for _, p := range published {
+		paramIDs[p.Parameter.ID] = struct{}{}
+	}
+	for paramID := range dailyByParam {
+		paramIDs[paramID] = struct{}{}
+	}
+
+	hourlyTrend := make([]models.WeatherParameterTrend, 0, len(paramIDs))
+	for paramID := range paramIDs {
 		param, err := s.repo.GetParameterByID(paramID)
 		if err != nil {
 			s.log.Warn("Unknown weather parameter for hourly trend", zap.Int("weather_parameter_id", paramID), zap.Error(err))
 			continue
 		}
 
+		hours := trendByParam[paramID]
 		points := make([]models.HourlyTrendPoint, 0, len(hours))
-		for hour, agg := range hours {
-			points = append(points, models.HourlyTrendPoint{
-				Hour:  hour,
-				Value: agg.sum / float64(agg.count),
+		if hours != nil {
+			for hour, agg := range hours {
+				points = append(points, models.HourlyTrendPoint{
+					Hour:  hour,
+					Value: agg.sum / float64(agg.count),
+				})
+			}
+			sort.Slice(points, func(i, j int) bool {
+				return points[i].Hour.Before(points[j].Hour)
 			})
 		}
-
-		sort.Slice(points, func(i, j int) bool {
-			return points[i].Hour.Before(points[j].Hour)
-		})
 
 		hourlyTrend = append(hourlyTrend, models.WeatherParameterTrend{
 			Parameter: param,

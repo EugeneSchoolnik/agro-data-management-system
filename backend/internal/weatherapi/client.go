@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -16,6 +17,8 @@ type Client struct {
 	login      string
 	password   string
 	token      string
+	tokenExpiry time.Time
+	mu          sync.Mutex
 	httpClient *http.Client
 }
 
@@ -154,19 +157,66 @@ type StationGeoDataResponse struct {
 }
 
 func (c *Client) authenticate(ctx context.Context) error {
-	if c.token != "" {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	// If token exists and not expired, reuse it
+	if c.token != "" && time.Now().Before(c.tokenExpiry) {
 		return nil
 	}
 
 	request := authRequest{Login: c.login, Password: c.password}
 	var resp authResponse
-	if err := c.doPost(ctx, "/api/authorization", request, &resp); err != nil {
+	// call low-level post without triggering auth recursion
+	if err := c.doPostRaw(ctx, "/api/authorization", request, &resp); err != nil {
 		return err
 	}
 	if resp.Res.Token == "" {
 		return fmt.Errorf("authorization failed: empty token")
 	}
 	c.token = resp.Res.Token
+	// token is valid for ~24h, set expiry slightly earlier to be safe
+	c.tokenExpiry = time.Now().Add(24*time.Hour - 5*time.Minute)
+	return nil
+}
+
+// doPostRaw performs an HTTP POST without automatic re-authentication on 401.
+func (c *Client) doPostRaw(ctx context.Context, path string, request interface{}, response interface{}) error {
+	body, err := json.Marshal(request)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+	if c.token != "" {
+		req.Header.Set("Authorization", c.token)
+	}
+	req.Header.Set("Accept-Language", "ua")
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("weather api request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		content, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("weather api returned status %d: %s", resp.StatusCode, strings.TrimSpace(string(content)))
+	}
+
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to read weather api response: %w", err)
+	}
+
+	if err := json.Unmarshal(data, response); err != nil {
+		return fmt.Errorf("failed to decode weather api response: %w", err)
+	}
+
 	return nil
 }
 
@@ -260,37 +310,54 @@ func (c *Client) StationGeoDataGet(ctx context.Context, req StationGeoDataReques
 }
 
 func (c *Client) doPost(ctx context.Context, path string, request interface{}, response interface{}) error {
+	// First ensure we have a valid token
+	if err := c.authenticate(ctx); err != nil {
+		return err
+	}
+
+	// Try the request once; on 401/403 attempt to refresh token and retry once
 	body, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(body))
-	if err != nil {
-		return fmt.Errorf("failed to create request: %w", err)
+	// helper to execute request using current token
+	exec := func() (*http.Response, error) {
+		req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.baseURL+path, bytes.NewReader(body))
+		if err != nil {
+			return nil, fmt.Errorf("failed to create request: %w", err)
+		}
+		req.Header.Set("Content-Type", "application/json")
+		if c.token != "" {
+			req.Header.Set("Authorization", c.token)
+		}
+		req.Header.Set("Accept-Language", "ua")
+		return c.httpClient.Do(req)
 	}
-	req.Header.Set("Content-Type", "application/json")
-	if c.token != "" {
-		req.Header.Set("Authorization", c.token)
-	}
-	req.Header.Set("Accept-Language", "ua")
 
-	resp, err := c.httpClient.Do(req)
+	resp, err := exec()
 	if err != nil {
 		return fmt.Errorf("weather api request failed: %w", err)
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode == http.StatusUnauthorized {
-		if path == "/api/authorization" {
-			content, _ := io.ReadAll(resp.Body)
-			return fmt.Errorf("weather api authorization failed: %s", strings.TrimSpace(string(content)))
-		}
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		// clear token and re-authenticate once
+		c.mu.Lock()
 		c.token = ""
+		c.tokenExpiry = time.Time{}
+		c.mu.Unlock()
 		if err := c.authenticate(ctx); err != nil {
-			return err
+			content, _ := io.ReadAll(resp.Body)
+			return fmt.Errorf("weather api authorization failed: %s; auth error: %v", strings.TrimSpace(string(content)), err)
 		}
-		return c.doPost(ctx, path, request, response)
+
+		resp2, err := exec()
+		if err != nil {
+			return fmt.Errorf("weather api request failed after re-auth: %w", err)
+		}
+		defer resp2.Body.Close()
+		resp = resp2
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

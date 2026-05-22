@@ -222,6 +222,17 @@ func (h *Handler) getWeatherStationSummary(c *gin.Context) {
 		return
 	}
 
+	// Ensure slices are non-nil so JSON always includes the keys
+	if summary.Latest == nil {
+		summary.Latest = make([]models.WeatherParameterSummary, 0)
+	}
+	if summary.Daily == nil {
+		summary.Daily = make([]models.WeatherParameterAggregate, 0)
+	}
+	if summary.HourlyTrend == nil {
+		summary.HourlyTrend = make([]models.WeatherParameterTrend, 0)
+	}
+
 	h.newSuccessResponse(c, summary)
 }
 
