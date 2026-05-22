@@ -5,6 +5,9 @@ import type {
   Metric,
   Pest,
   Forecast,
+  WeatherObservation,
+  WeatherStation,
+  WeatherStationSummary,
   ApiResponse,
   FieldForm,
   FieldReport,
@@ -76,6 +79,36 @@ export const getFieldLatestForecast = (id: number) =>
 export const getFieldReport = (id: number, from: string, to: string) =>
   apiRequest<FieldReport>(
     `/reports/fields/${id}?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
+  );
+
+export const syncFieldWeather = (fieldId: number) =>
+  apiRequest<WeatherObservation[]>(`/weather/sync/field/${fieldId}`, {
+    method: "POST",
+  });
+export const getWeatherStations = () =>
+  apiRequest<WeatherStation[]>("/weather/stations");
+export const getWeatherStationSummary = async (
+  externalId: number,
+): Promise<WeatherStationSummary> => {
+  const raw = await apiRequest<any>(`/weather/stations/${externalId}/summary`);
+
+  if (!raw) {
+    return raw;
+  }
+
+  const mapped: any = {
+    ...raw,
+    hourlyTrend: (raw.hourly_trend ?? []).map((t: any) => ({
+      parameter: t.parameter,
+      points: t.points ?? [],
+    })),
+  };
+
+  return mapped as WeatherStationSummary;
+};
+export const getWeatherStationObservations = (externalId: number) =>
+  apiRequest<WeatherObservation[]>(
+    `/weather/stations/${externalId}/observations`,
   );
 
 // Sensors

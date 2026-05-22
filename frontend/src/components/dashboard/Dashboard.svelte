@@ -14,10 +14,11 @@
   import FieldsManagement from "../fields/FieldsManagement.svelte";
   import CropsManagement from "../crops/CropsManagement.svelte";
   import PestsManagement from "../pests/PestsManagement.svelte";
+  import WeatherManagement from "../weather/WeatherManagement.svelte";
   import Modal from "../common/Modal.svelte";
   import Button from "../common/Button.svelte";
 
-  type ViewType = "dashboard" | "fields" | "crops" | "pests";
+  type ViewType = "dashboard" | "fields" | "crops" | "pests" | "weather";
 
   let selectedView: ViewType = "dashboard";
   let showCreateFieldModal: boolean = false;
@@ -78,6 +79,12 @@
       >
         Шкідники
       </Button>
+      <Button
+        variant={selectedView === "weather" ? "primary" : "secondary"}
+        on:click={() => (selectedView = "weather")}
+      >
+        Погода
+      </Button>
     </nav>
   </header>
 
@@ -124,6 +131,8 @@
       <CropsManagement />
     {:else if selectedView === "pests"}
       <PestsManagement />
+    {:else if selectedView === "weather"}
+      <WeatherManagement />
     {/if}
   </main>
 </div>

@@ -49,6 +49,68 @@ export interface Forecast {
   created_at: string;
 }
 
+export interface WeatherParameter {
+  id: number;
+  param_id: number;
+  name: string;
+  unit: string;
+  description: string;
+}
+
+export interface WeatherObservation {
+  id: number;
+  station_id: number;
+  weather_parameter_id: number;
+  station_param: number;
+  value: number;
+  recorded_at: string;
+  created_at?: string;
+  weather_parameter: WeatherParameter;
+}
+
+export interface WeatherParameterSummary {
+  parameter: WeatherParameter;
+  value: number;
+  station_param: number;
+  recorded_at: string;
+}
+
+export interface WeatherParameterAggregate {
+  parameter: WeatherParameter;
+  average: number;
+  min: number;
+  max: number;
+  count: number;
+}
+
+export interface HourlyTrendPoint {
+  hour: string;
+  value: number;
+}
+
+export interface WeatherParameterTrend {
+  parameter: WeatherParameter;
+  points: HourlyTrendPoint[];
+}
+
+export interface WeatherStationSummary {
+  station: WeatherStation;
+  latest: WeatherParameterSummary[];
+  daily: WeatherParameterAggregate[];
+  hourlyTrend: WeatherParameterTrend[];
+  updated_at: string;
+}
+
+export interface WeatherStation {
+  id: number;
+  external_id: number;
+  name: string;
+  region: string;
+  active: boolean;
+  last_seen?: string;
+  created_at?: string;
+}
+
 export interface MetricSummary {
   avg: number;
   min: number;

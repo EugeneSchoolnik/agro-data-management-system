@@ -167,15 +167,19 @@
   </div>
 
   <div class="field-actions">
-    <Button variant="secondary" on:click={openDetails}>Деталі</Button>
-    <Button variant="secondary" on:click={openReport}>Звіт</Button>
-    <Button
-      variant="primary"
-      on:click={refreshForecast}
-      loading={forecastLoading}
-    >
-      Оновити прогноз
-    </Button>
+    <div class="action-left">
+      <Button variant="secondary" on:click={openDetails}>Деталі</Button>
+      <Button variant="secondary" on:click={openReport}>Звіт</Button>
+    </div>
+    <div class="action-right">
+      <Button
+        variant="primary"
+        on:click={refreshForecast}
+        loading={forecastLoading}
+      >
+        Оновити прогноз
+      </Button>
+    </div>
   </div>
 </div>
 
@@ -336,8 +340,36 @@
 
   .field-actions {
     display: flex;
-    gap: 0.5rem;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
     margin-top: 1rem;
+  }
+
+  .action-left {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .action-right {
+    display: flex;
+    align-items: center;
+  }
+
+  /* make secondary buttons smaller in the card */
+  .field-card :global(.btn) {
+    box-shadow: 0 8px 18px rgba(74, 91, 36, 0.09);
+  }
+
+  .field-card .action-left :global(.btn) {
+    padding: 0.5rem 0.9rem;
+    min-height: 2.6rem;
+    font-size: 0.95rem;
+  }
+
+  .field-card .action-right :global(.btn) {
+    padding: 0.8rem 1.2rem;
+    min-height: 3rem;
   }
 
   .report-form {
