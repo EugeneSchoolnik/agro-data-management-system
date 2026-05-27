@@ -17,6 +17,7 @@ type Services struct {
 	Forecast ForecastService
 	Weather  WeatherService
 	Report   ReportService
+	User     UserService
 }
 
 // Dependencies — допоміжна структура для ініціалізації
@@ -52,6 +53,8 @@ func NewServices(deps Dependencies) *Services {
 		deps.Log,
 	)
 
+	userSrv := NewUserService(deps.Repos.User, deps.Log)
+
 	return &Services{
 		Crop:     cropSrv,
 		Field:    fieldSrv,
@@ -61,5 +64,6 @@ func NewServices(deps Dependencies) *Services {
 		Forecast: forecastSrv,
 		Weather:  weatherSrv,
 		Report:   reportSrv,
+		User:     userSrv,
 	}
 }

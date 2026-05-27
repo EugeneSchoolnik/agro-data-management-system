@@ -12,6 +12,7 @@ type Repositories struct {
 	Pest     PestRepository
 	Forecast ForecastRepository
 	Weather  WeatherRepository
+	User     UserRepository
 }
 
 func NewRepositories(db *sqlx.DB) *Repositories {
@@ -23,5 +24,6 @@ func NewRepositories(db *sqlx.DB) *Repositories {
 		Pest:     NewPestPostgres(db),
 		Forecast: NewForecastPostgres(db),
 		Weather:  NewWeatherPostgres(db),
+		User:     NewUserPostgres(db),
 	}
 }

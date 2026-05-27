@@ -45,6 +45,9 @@ func main() {
 
 	handlers := handler.NewHandler(services, logger)
 
+	// Provide auth configuration to handler package
+	handler.SetAuthConfig(cfg.Auth)
+
 	srv := &http.Server{
 		Addr:           ":8080",
 		Handler:        handlers.InitRoutes(),

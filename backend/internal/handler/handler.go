@@ -54,6 +54,12 @@ func (h *Handler) InitRoutes() *gin.Engine {
 
 	api := router.Group("/api/v1")
 
+	// Public auth endpoint
+	api.POST("/auth/login", h.login)
+
+	// Protect all other API endpoints with auth middleware
+	api.Use(h.authMiddleware())
+
 	{
 		crops := api.Group("/crops")
 

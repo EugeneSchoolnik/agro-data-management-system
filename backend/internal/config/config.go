@@ -15,6 +15,7 @@ type Config struct {
 	TestDatabase TestDatabase     `yaml:"test_database"`
 	Forecasting  AIConfig         `yaml:"forecasting"`
 	WeatherAPI   WeatherAPIConfig `yaml:"weather_api"`
+	Auth         AuthConfig       `yaml:"auth"`
 }
 
 type WeatherAPIConfig struct {
@@ -49,6 +50,13 @@ type TestDatabase struct {
 type AIConfig struct {
 	PythonServiceURL string `yaml:"python_service_url"`
 	APIKey           string `yaml:"api_key" env:"AI_API_KEY"`
+}
+
+type AuthConfig struct {
+	JWTSecret     string        `yaml:"jwt_secret" env:"JWT_SECRET"`
+	AdminEmail    string        `yaml:"admin_email" env:"ADMIN_EMAIL"`
+	AdminPassword string        `yaml:"admin_password" env:"ADMIN_PASSWORD"`
+	TokenTTL      time.Duration `yaml:"token_ttl" env:"TOKEN_TTL" env-default:"24h"`
 }
 
 func LoadConfig(path string) (*Config, error) {
