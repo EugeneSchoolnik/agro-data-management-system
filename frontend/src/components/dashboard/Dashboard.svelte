@@ -9,6 +9,7 @@
     addField,
   } from "../../stores/fields";
   import { sensors, loadSensors } from "../../stores/sensors";
+  import { authStore, clearAuth } from "../../stores/auth";
   import FieldCard from "../fields/FieldCard.svelte";
   import FieldFormComponent from "../fields/FieldForm.svelte";
   import FieldsManagement from "../fields/FieldsManagement.svelte";
@@ -49,11 +50,19 @@
       createFieldLoading = false;
     }
   }
+
+  function handleLogout() {
+    clearAuth();
+  }
 </script>
 
 <div class="dashboard">
   <header class="dashboard-header">
-    <h1>Агро-Дані: Управління Полями</h1>
+    <div class="header-brand">
+      <h1>Агро-Дані</h1>
+      <p>Управління полями та аналітика</p>
+    </div>
+
     <nav class="nav">
       <Button
         variant={selectedView === "dashboard" ? "primary" : "secondary"}
@@ -86,6 +95,14 @@
         Погода
       </Button>
     </nav>
+
+    <div class="user-menu">
+      <div class="user-info">
+        <span class="user-label">Користувач</span>
+        <strong class="user-email">{$authStore.userEmail}</strong>
+      </div>
+      <Button variant="secondary" on:click={handleLogout}>Вийти</Button>
+    </div>
   </header>
 
   <main class="dashboard-content">
@@ -156,27 +173,108 @@
   }
 
   .dashboard-header {
-    background: rgba(255, 255, 255, 0.94);
+    background: rgba(255, 255, 255, 0.95);
     padding: 1.4rem 2rem;
     box-shadow: 0 24px 50px rgba(53, 74, 28, 0.14);
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) auto minmax(180px, 1fr);
+    gap: 1.5rem;
     align-items: center;
     border: 1px solid rgba(134, 126, 87, 0.18);
     border-radius: 1.25rem;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(10px);
   }
 
-  .dashboard-header h1 {
+  .header-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .header-brand h1 {
     margin: 0;
     color: #314b1f;
-    font-size: clamp(1.9rem, 2.6vw, 2.8rem);
+    font-size: clamp(1.75rem, 2.5vw, 2.5rem);
+    letter-spacing: -0.04em;
+  }
+
+  .header-brand p {
+    margin: 0;
+    color: #5e6a44;
+    font-size: 0.98rem;
+    opacity: 0.9;
   }
 
   .nav {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
+    justify-content: center;
+    align-items: center;
+    padding: 0.2rem 0;
+  }
+
+  .user-menu {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 0.6rem 0 0.6rem 1rem;
+    border-left: 1px solid rgba(134, 126, 87, 0.18);
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.15rem;
+  }
+
+  .user-label {
+    font-size: 0.78rem;
+    color: #7d865f;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+  }
+
+  .user-email {
+    font-size: 0.95rem;
+    color: #2f4d1f;
+    max-width: 180px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  @media (max-width: 950px) {
+    .dashboard-header {
+      grid-template-columns: 1fr;
+      text-align: center;
+    }
+
+    .user-menu {
+      justify-content: center;
+      border-left: none;
+      padding-left: 0;
+      border-top: 1px solid rgba(134, 126, 87, 0.12);
+      margin-top: 1rem;
+      padding-top: 1rem;
+    }
+
+    .header-brand,
+    .nav {
+      align-items: center;
+    }
+  }
+
+  .user-email {
+    font-size: 0.9rem;
+    color: #666;
+    white-space: nowrap;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .dashboard-content {

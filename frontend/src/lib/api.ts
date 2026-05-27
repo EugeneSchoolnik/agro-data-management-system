@@ -11,7 +11,11 @@ import type {
   ApiResponse,
   FieldForm,
   FieldReport,
+  LoginRequest,
+  LoginResponse,
 } from "../types/models";
+import { get } from "svelte/store";
+import { authStore, clearAuth } from "../stores/auth";
 
 const API_BASE = "http://localhost:8080/api/v1";
 
@@ -24,17 +28,33 @@ export async function apiRequest<T>(
   options: RequestOptions = {},
 ): Promise<T> {
   const url = `${API_BASE}${endpoint}`;
+  const auth = get(authStore);
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+
+  // Add JWT token to Authorization header if available
+  if (auth.token) {
+    headers["Authorization"] = `Bearer ${auth.token}`;
+  }
+
   const config: RequestInit = {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
     ...options,
   };
 
   try {
     const response = await fetch(url, config);
     const data: ApiResponse<T> = await response.json();
+
+    // Handle 401 Unauthorized - clear auth (no full-page redirect)
+    // Let the app react to authStore changes instead of forcing a reload.
+    if (response.status === 401) {
+      clearAuth();
+      throw new Error("Session expired. Please log in again.");
+    }
 
     if (!response.ok) {
       throw new Error(data.error || `HTTP error! status: ${response.status}`);
@@ -43,6 +63,33 @@ export async function apiRequest<T>(
     return data.data as T;
   } catch (error) {
     console.error("API request failed:", error);
+    throw error;
+  }
+}
+
+// Authentication
+export async function login(credentials: LoginRequest): Promise<LoginResponse> {
+  const url = `${API_BASE}/auth/login`;
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(credentials),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    }
+
+    // Login endpoint returns {"token": "..."} directly, not wrapped in ApiResponse
+    return data as LoginResponse;
+  } catch (error) {
+    console.error("Login failed:", error);
     throw error;
   }
 }
