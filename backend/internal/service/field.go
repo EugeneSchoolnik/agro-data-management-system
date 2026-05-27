@@ -39,11 +39,13 @@ func (s *fieldService) Create(f models.Field) (models.Field, error) {
 		return f, fmt.Errorf("field validation failed: %w", err)
 	}
 
-	// 2. Перевірка існування культури
-	_, err := s.cropRepo.GetByID(f.CropID)
-	if err != nil {
-		s.log.Warn("Crop check failed for field creation", zap.Int("crop_id", f.CropID), zap.Error(err))
-		return f, fmt.Errorf("cannot create field: crop with id %d not found", f.CropID)
+	// 2. Перевірка існування культури (якщо вказана)
+	if f.CropID != nil {
+		_, err := s.cropRepo.GetByID(*f.CropID)
+		if err != nil {
+			s.log.Warn("Crop check failed for field creation", zap.Int("crop_id", *f.CropID), zap.Error(err))
+			return f, fmt.Errorf("cannot create field: crop with id %d not found", *f.CropID)
+		}
 	}
 
 	// 3. Збереження
@@ -71,8 +73,10 @@ func (s *fieldService) Update(f models.Field) error {
 	}
 
 	// Також перевіряємо культуру при оновленні (якщо її змінили)
-	if _, err := s.cropRepo.GetByID(f.CropID); err != nil {
-		return fmt.Errorf("invalid crop_id: %w", err)
+	if f.CropID != nil {
+		if _, err := s.cropRepo.GetByID(*f.CropID); err != nil {
+			return fmt.Errorf("invalid crop_id: %w", err)
+		}
 	}
 
 	return s.fieldRepo.Update(f)

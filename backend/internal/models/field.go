@@ -14,7 +14,7 @@ type Field struct {
 	Name      string    `db:"name" json:"name" validate:"required,min=3"`
 	Area      float64   `db:"area" json:"area" validate:"required,gt=0"`
 	Location  string    `db:"location" json:"location" validate:"required"`
-	CropID    int       `db:"crop_id" json:"crop_id" validate:"required,gt=0"`
+	CropID    *int      `db:"crop_id" json:"crop_id"`
 	CreatedAt time.Time `db:"created_at" json:"created_at"`
 }
 
