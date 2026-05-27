@@ -1,0 +1,92 @@
+@startuml DeploymentArchitecture
+skinparam monochrome true
+
+title Deployment Architecture: Agro Data Management System
+
+cloud "Internet" as Internet
+
+node "Load Balancer" as LB {
+  artifact "nginx / reverse proxy" as ReverseProxy
+}
+
+node "Application Server (Docker Container)" as AppContainer {
+  artifact "Go API Server (port 8080)" as GoAPI
+  artifact "Config loader" as Config
+  artifact "Logger (zap)" as Logger
+}
+
+node "Database Server" as DBServer {
+  database "PostgreSQL (port 5432)" as PrimaryDB
+  database "Backup PostgreSQL" as BackupDB
+}
+
+node "Storage" as Storage {
+  artifact "postgres_data volume" as DataVolume
+  artifact "test_postgres_data volume" as TestVolume
+}
+
+node "External Services" as ExtServices {
+  cloud "Weather API" as WeatherSvc
+  node "Python AI Service" as PythonAI {
+    artifact "Forecasting Model" as Model
+  }
+}
+
+node "IoT / Field Layer" as IoTLayer {
+  artifact "Sensor Gateway 1" as SG1
+  artifact "Sensor Gateway 2" as SG2
+  artifact "Temperature sensors" as TempSensors
+  artifact "Humidity sensors" as HumiditySensors
+}
+
+node "Client Layer" as ClientLayer {
+  artifact "Web UI (React/Vue)" as WebUI
+  artifact "Mobile App" as MobileApp
+  artifact "Dashboard" as Dashboard
+}
+
+Internet --> LB : HTTPS (443)
+LB --> ReverseProxy : HTTP
+ReverseProxy --> GoAPI : route requests
+GoAPI --> PrimaryDB : read/write
+PrimaryDB --> DataVolume : persist
+GoAPI --> BackupDB : replicate
+BackupDB --> TestVolume : test data
+
+GoAPI --> WeatherSvc : sync weather
+GoAPI --> PythonAI : forecast
+PythonAI --> Model : inference
+
+SG1 --> GoAPI : push metrics
+SG2 --> GoAPI : push metrics
+TempSensors --> SG1 : collect
+HumiditySensors --> SG1 : collect
+
+WebUI --> LB : requests
+MobileApp --> LB : requests
+Dashboard --> LB : requests
+
+note right of AppContainer
+  Deployment:
+  - Docker Compose
+  - config/local.yaml
+  - 12-factor principles
+  - Graceful shutdown
+end note
+
+note left of DBServer
+  Database Layer:
+  - PostgreSQL 15
+  - Health checks every 10s
+  - Persistent volumes
+  - Migrations via migrate/v4
+end note
+
+note bottom of IoTLayer
+  IoT Devices:
+  - Field sensors (temperature, humidity, soil moisture)
+  - HTTP/gRPC push to API
+  - Support multiple gateway architectures
+end note
+
+@enduml

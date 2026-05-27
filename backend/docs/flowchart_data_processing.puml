@@ -1,0 +1,40 @@
+@startuml DataProcessingFlow
+skinparam monochrome true
+
+title Data Processing & Report Generation Algorithm Flow
+
+start
+:Request field report;
+:Parameters: fieldID, from_date, to_date;
+:Call ReportService.GenerateFieldReport();
+if (Date range valid?) then (yes)
+  if (from_date > to_date?) then (yes)
+    :Return error;
+    stop
+  else (no)
+  endif
+  :Load Field by ID;
+  if (Field exists?) then (yes)
+    :Fetch all Sensors for Field;
+    :Loop: Process each sensor type;
+    :  - temperature;
+    :  - air_humidity;
+    :  - soil_moisture;
+    :Call GetHistoryBySensor(from, to);
+    :Calculate aggregates:;
+    :  - avg, min, max, count;
+    :Fetch Forecasts by Field & range;
+    :Calculate forecast stats:;
+    :  - average probability;
+    :  - count of high-risk;
+    :Build FieldReport object;
+    :Return report to client;
+  else (no)
+    :Return error: Field not found;
+  endif
+else (no)
+  :Return error: Invalid date range;
+endif
+stop
+
+@enduml

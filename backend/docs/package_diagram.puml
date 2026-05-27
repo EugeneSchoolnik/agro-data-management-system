@@ -1,0 +1,92 @@
+@startuml
+skinparam packageStyle rectangle
+skinparam monochrome true
+
+title Package Diagram: Agro Data Management System
+
+package "cmd/api" {
+  [main.go]
+}
+
+package config {
+  [local.yaml]
+  [config.go]
+}
+
+package internal {
+  package config {
+    [config.go]
+  }
+
+  package logger {
+    [logger.go]
+  }
+
+  package models {
+    [field.go]
+    [forecast.go]
+    [report.go]
+    [sensor.go]
+    [weather.go]
+  }
+
+  package repository {
+    [postgres.go]
+    [crop_postgres.go]
+    [field_postgres.go]
+    [forecast_postgres.go]
+    [metric_postgres.go]
+    [pest_postgres.go]
+    [sensor_postgres.go]
+    [weather_postgres.go]
+    package mocks {
+      [*_repository.go]
+    }
+  }
+
+  package service {
+    [service.go]
+    [crop.go]
+    [field.go]
+    [forecast.go]
+    [metric.go]
+    [pest.go]
+    [report.go]
+    [sensor.go]
+    [weather.go]
+    package mocks {
+      [*_service.go]
+    }
+  }
+
+  package handler {
+    [handler.go]
+    [crop.go]
+    [field.go]
+    [forecast.go]
+    [metric.go]
+    [pest.go]
+    [report.go]
+    [sensor.go]
+  }
+
+  package weather {
+    package weatherapi {
+      [client.go]
+      [integration_test.go]
+    }
+  }
+}
+
+' Dependencies
+[main.go] --> handler
+[main.go] --> config
+[main.go] --> logger
+handler --> service
+service --> repository
+service --> models
+repository --> models
+weatherapi --> models
+service --> weatherapi
+
+@enduml

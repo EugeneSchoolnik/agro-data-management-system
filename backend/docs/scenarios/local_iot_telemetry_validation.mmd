@@ -1,0 +1,12 @@
+flowchart LR
+  A[IoT Field Device]
+  B[API Gateway / Sensor Receiver]
+  C[Validation Engine]
+  D[Telemetry Log]
+  E[Main Service]
+
+  A -->|1: Передача первинної телеметрії| B
+  B -->|2: Валідація формату й діапазонів| C
+  C -->|3: Статус валідації| B
+  B -->|4: Логування телеметрії| D
+  B -->|5: Передати для збереження та аналізу| E

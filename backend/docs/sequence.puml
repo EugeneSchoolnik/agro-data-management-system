@@ -1,0 +1,44 @@
+@startuml SequenceDiagram
+' PlantUML послідовнісна діаграма: сенсор -> бекенд -> погода -> ШІ -> брокер / БД / сповіщення
+skinparam monochrome true
+
+participant "Сенсор" as Sensor
+participant "Go-бекенд" as Backend
+participant "Weather API" as WeatherAPI
+participant "AI-сервіс" as MLService
+participant "Message Broker" as Broker
+participant "Notification Service" as Notifier
+database "Postgres" as Postgres
+
+Sensor -> Backend: Надіслати метрики
+activate Backend
+
+Backend -> WeatherAPI: Запитати прогноз (HTTP)
+activate WeatherAPI
+WeatherAPI --> Backend: Повернути прогноз
+deactivate WeatherAPI
+
+Backend -> Backend: Обробити та об'єднати дані
+
+Backend -> MLService: HTTP POST /predict з даними поля та метриками
+activate MLService
+MLService --> Backend: Повернути ймовірність P
+deactivate MLService
+
+alt P > 0.7
+    Backend -> Broker: Опублікувати подію тривоги [P > 0.7]
+    activate Broker
+    Broker -> Notifier: Доставити подію
+    activate Notifier
+    Notifier -> Notifier: Відправити email/SMS/WEBHOOK
+    Notifier --> Broker: Підтвердження
+    Broker --> Backend: Підтвердження
+    deactivate Notifier
+    deactivate Broker
+    Backend -> Postgres: Записати тривогу в БД
+else P <= 0.7
+    Backend -> Postgres: Записати моніторинговий запис
+end
+
+deactivate Backend
+@enduml

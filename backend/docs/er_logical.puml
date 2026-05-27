@@ -1,0 +1,104 @@
+@startuml ERDiagram
+' Logical ER diagram (no data types, minimal technical fields)
+skinparam monochrome true
+
+title Logical ER Diagram: Agro Data Management System
+
+entity Crop {
+  * id
+  --
+  name
+  variety
+  description
+}
+
+entity Field {
+  * id
+  --
+  name
+  area
+  location
+  crop_id
+}
+
+entity Sensor {
+  * id
+  --
+  field_id
+  sensor_type
+  status
+}
+
+entity Metric {
+  * id
+  --
+  sensor_id
+  value
+  recorded_at
+}
+
+entity Pest {
+  * id
+  --
+  name
+  scientific_name
+}
+
+entity Forecast {
+  * id
+  --
+  field_id
+  pest_id
+  probability
+  recommendation
+}
+
+entity WeatherParameter {
+  * id
+  --
+  param_id
+  name
+  unit
+  description
+}
+
+entity WeatherStation {
+  * id
+  --
+  external_id
+  name
+  region
+  active
+}
+
+entity WeatherStationParameter {
+  * id
+  --
+  station_id
+  weather_parameter_id
+  station_param
+}
+
+entity WeatherObservation {
+  * id
+  --
+  station_id
+  weather_parameter_id
+  station_param
+  value
+  recorded_at
+}
+
+' Relationships
+Crop ||--o{ Field : "has"
+Field ||--o{ Sensor : "has"
+Sensor ||--o{ Metric : "records"
+Field ||--o{ Forecast : "has"
+Pest  ||--o{ Forecast : "relates"
+
+WeatherStation ||--o{ WeatherStationParameter : "defines"
+WeatherParameter ||--o{ WeatherStationParameter : "used_in"
+WeatherStation ||--o{ WeatherObservation : "observes"
+WeatherParameter ||--o{ WeatherObservation : "measures"
+
+@enduml

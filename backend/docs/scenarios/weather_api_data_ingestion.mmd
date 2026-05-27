@@ -1,0 +1,11 @@
+flowchart LR
+  A[Weather API Client]
+  B[Weather API Service]
+  C[Transformation Component]
+  D[PostgreSQL]
+
+  A -->|1: Запит даних погоди| B
+  B -->|2: Отримати сирі дані| A
+  A -->|3: Передати сирі часові ряди| C
+  C -->|4: Зберегти нормалізовані дані| D
+  D -->|5: Підтвердження збереження| C

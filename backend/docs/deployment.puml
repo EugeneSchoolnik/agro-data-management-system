@@ -1,0 +1,44 @@
+@startuml DeploymentDiagram
+' PlantUML deployment diagram for Agro Data Management System
+skinparam monochrome true
+
+title Deployment: Agro Data Management System
+
+node "Edge / Sensors" as Sensors {
+  artifact "Sensor devices" as sensors_art
+}
+
+cloud "External Weather API" as WeatherAPI
+
+node "Backend Server (Go)" as Backend {
+  component "API Server" as APIServer
+  component "Data Collector" as DataCollector
+}
+
+node "ML Service (Python)" as MLService {
+  component "ML Model (MLP)"
+}
+
+database "Postgres DB" as Postgres
+
+node "Message Broker" as Broker
+node "Notification Service" as Notifier
+node "External Notification Targets" as External
+
+Sensors --> Backend : push metrics (HTTP/gRPC)
+Backend --> WeatherAPI : request forecast (HTTP)
+Backend --> MLService : send features (REST/gRPC)
+MLService --> Backend : return probability P
+
+'' High-risk alert flow (e.g., P > 0.7)
+Backend --> Broker : publish alert event [P > 0.7]
+Broker --> Notifier : deliver event
+Notifier --> External : send email/SMS/WEBHOOK
+Backend --> Postgres : write alert log
+
+'' Normal monitoring flow (e.g., P <= 0.7)
+Backend --> Postgres : write monitoring entry [P <= 0.7]
+
+MLService --> Postgres : optional model logs
+
+@enduml

@@ -1,0 +1,34 @@
+@startuml ForecastGenerationFlow
+skinparam monochrome true
+
+title Forecast Generation Flow
+
+start
+:User requests forecast (fieldID, pestID);
+if (Field + Pest exist?) then (yes)
+  :Fetch Field, Crop, Pest data;
+  :Calculate 7-day time window;
+  if (Required sensors available?) then (yes)
+    :Fetch and aggregate sensor metrics;
+    if (Data available?) then (yes)
+      :Prepare AI request payload;
+      :Send POST to Forecasting Engine;
+      if (Response 200?) then (yes)
+        :Extract probability, recommendation;
+        :Save Forecast to PostgreSQL;
+        :Return Forecast;
+      else (no)
+        :Return error: AI unavailable;
+        stop
+      endif
+    else (no)
+      :Return error: No metrics;
+      stop
+    endif
+  else (no)
+    :Return error: Missing sensors;
+    stop
+  endif
+else (no)
+  :Return error: Field/Pest not found;
+stop

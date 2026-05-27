@@ -1,0 +1,110 @@
+@startuml ERDiagram
+' PlantUML ER diagram generated from internal/models
+skinparam monochrome true
+
+title ER Diagram: Agro Data Management System
+
+entity Crop {
+  * id : int <<PK>>
+  --
+  name : varchar
+  variety : varchar
+  description : text
+}
+
+entity Field {
+  * id : int <<PK>>
+  --
+  name : varchar
+  area : float
+  location : varchar
+  crop_id : int <<FK>>
+  created_at : timestamp
+}
+
+entity Sensor {
+  * id : int <<PK>>
+  --
+  field_id : int <<FK>>
+  sensor_type : varchar
+  status : varchar
+  last_sync : timestamp
+}
+
+entity Metric {
+  * id : bigint <<PK>>
+  --
+  sensor_id : int <<FK>>
+  value : double
+  recorded_at : timestamp
+}
+
+entity Pest {
+  * id : int <<PK>>
+  --
+  name : varchar
+  scientific_name : varchar
+}
+
+entity Forecast {
+  * id : int <<PK>>
+  --
+  field_id : int <<FK>>
+  pest_id : int <<FK>>
+  probability : double
+  recommendation : text
+  created_at : timestamp
+}
+
+entity WeatherParameter {
+  * id : int <<PK>>
+  --
+  param_id : int
+  name : varchar
+  unit : varchar
+  description : text
+}
+
+entity WeatherStation {
+  * id : int <<PK>>
+  --
+  external_id : int
+  name : varchar
+  region : varchar
+  active : boolean
+  last_seen : timestamp
+  created_at : timestamp
+}
+
+entity WeatherStationParameter {
+  * id : int <<PK>>
+  --
+  station_id : int <<FK>>
+  weather_parameter_id : int <<FK>>
+  station_param : int
+}
+
+entity WeatherObservation {
+  * id : bigint <<PK>>
+  --
+  station_id : int <<FK>>
+  weather_parameter_id : int <<FK>>
+  station_param : int
+  value : double
+  recorded_at : timestamp
+  created_at : timestamp
+}
+
+' Relationships
+Crop ||--o{ Field : "has"
+Field ||--o{ Sensor : "has"
+Sensor ||--o{ Metric : "records"
+Field ||--o{ Forecast : "has"
+Pest  ||--o{ Forecast : "relates"
+
+WeatherStation ||--o{ WeatherStationParameter : "defines"
+WeatherParameter ||--o{ WeatherStationParameter : "used_in"
+WeatherStation ||--o{ WeatherObservation : "observes"
+WeatherParameter ||--o{ WeatherObservation : "measures"
+
+@enduml

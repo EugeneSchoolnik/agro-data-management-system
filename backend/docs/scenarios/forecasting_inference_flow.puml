@@ -1,0 +1,21 @@
+@startuml ForecastingInferenceFlow
+skinparam monochrome true
+skinparam linetype ortho
+left to right direction
+
+title Сценарій 3: Передача даних до Forecasting Engine -> Інференс -> Збереження результату
+
+node "Data Aggregation Service" as AggregationService
+node "Forecasting Engine" as ForecastEngine
+node "ML Inference Model" as MLModel
+database "Forecast Results DB" as ResultsDB
+node "Analytics Service" as AnalyticsService
+
+AggregationService --> ForecastEngine : 1: Передати інтегрований масив даних
+ForecastEngine --> MLModel : 2: Виконати інференс
+MLModel --> ForecastEngine : 3: Прогноз + ризики шкідників
+ForecastEngine --> ResultsDB : 4: Зберегти результат прогнозу
+ResultsDB --> ForecastEngine : 5: Підтвердження збереження
+ForecastEngine --> AnalyticsService : 6: Повідомити про готовий прогноз
+
+@enduml

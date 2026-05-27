@@ -1,0 +1,54 @@
+@startuml ComponentDiagram
+skinparam monochrome true
+
+title Компонентна діаграма: Система управління агроданими
+
+package "Шар API" {
+  component "HTTP API (Go)" as API
+  component "Сервіс автентифікації" as Auth
+}
+
+package "Збір даних" {
+  component "Приймач IoT" as IoT
+  component "Клієнт погодних даних" as WeatherClient
+}
+
+package "Обробка" {
+  component "Трансформація" as Transformer
+  component "Сервіс прогнозів (Go)" as ForecastSvc
+}
+
+package "Зберігання" {
+  component "Репозиторій" as Repo
+  database "PostgreSQL" as Postgres
+}
+
+package "Зовнішні сервіси" {
+  component "Двигун прогнозування (Python)" as PyAI
+  component "Зовнішній погодний API" as ExtWeather
+}
+
+package "Інфраструктура" {
+  component "Завантажувач конфігурації" as Config
+  component "Логер" as Logger
+}
+
+' Взаємодії
+API --> Auth : автентифікувати
+API --> IoT : отримати метрики
+IoT --> Repo : запис сирих метрик
+WeatherClient --> ExtWeather : запитати погоду
+WeatherClient --> Transformer : надіслати сирі погодні дані
+Transformer --> Repo : зберегти нормалізовані дані
+Repo --> Postgres : читати/запис
+ForecastSvc --> Repo : отримати дані
+ForecastSvc --> PyAI : відправити payload
+PyAI --> ForecastSvc : повернути прогноз
+ForecastSvc --> Repo : зберегти прогноз
+API --> ForecastSvc : запит прогнозу
+Logger ..> API : логи
+Config ..> API : конфігурація
+Config ..> WeatherClient
+Config ..> ForecastSvc
+
+@enduml

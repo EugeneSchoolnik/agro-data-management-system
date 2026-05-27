@@ -1,0 +1,18 @@
+@startuml LocalIoTTelemetryValidation
+skinparam monochrome true
+
+title Сценарій 2: Приймання, валідація та логування локальної телеметрії
+
+object "IoT Field Device" as IoTDevice
+object "API Gateway / Sensor Receiver" as Gateway
+object "Validation Engine" as Validator
+object "Telemetry Log" as TelemetryLog
+object "Main Service" as MainService
+
+IoTDevice -> Gateway : 1: Передача первинної телеметрії
+Gateway -> Validator : 2: Валідація формату й діапазонів
+Validator --> Gateway : 3: Статус валідації
+Gateway -> TelemetryLog : 4: Логування телеметрії
+Gateway -> MainService : 5: Передати для збереження та аналізу
+
+@enduml

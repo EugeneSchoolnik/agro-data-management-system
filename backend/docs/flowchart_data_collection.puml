@@ -1,0 +1,36 @@
+@startuml DataCollectionFlow
+skinparam monochrome true
+
+title Data Collection Algorithm Flow
+
+start
+:Sensor sends metric;
+:HTTP POST to /metrics endpoint;
+:Handler receives request;
+:Parse JSON payload;
+if (JSON valid?) then (yes)
+  :Extract SensorID, value;
+  :Call MetricService.Save();
+  if (Sensor exists?) then (yes)
+    if (Sensor status = Active?) then (yes)
+      :Validate metric value;
+      if (Value in valid range?) then (yes)
+        :Create Metric entity;
+        :Call MetricRepository.Create();
+        :Persist to PostgreSQL;
+        :Return 200 OK with metric ID;
+      else (no)
+        :Return 400 Bad Request;
+      endif
+    else (no)
+      :Return 400 (Sensor inactive);
+    endif
+  else (no)
+    :Return 404 (Sensor not found);
+  endif
+else (no)
+  :Return 400 (Invalid JSON);
+endif
+stop
+
+@enduml

@@ -1,0 +1,120 @@
+@startuml
+skinparam classAttributeIconSize 0
+skinparam monochrome true
+
+title UML Class Diagram: Agro Data Management System
+
+class Crop {
+  +ID: int
+  +Name: string
+  +Variety: string
+  +Description: string
+  +Validate(): error
+}
+
+class Field {
+  +ID: int
+  +Name: string
+  +Area: float64
+  +Location: string
+  +CropID: int
+  +CreatedAt: time.Time
+  +Validate(): error
+  +AssignCrop(cropID: int)
+}
+
+class Sensor {
+  +ID: int
+  +FieldID: int
+  +SensorType: string
+  +Status: SensorStatus
+  +LastSync: time.Time
+  +Validate(): error
+  +IsActive(): bool
+}
+
+class Metric {
+  +ID: int64
+  +SensorID: int
+  +Value: float64
+  +RecordedAt: time.Time
+  +Validate(): error
+}
+
+class Pest {
+  +ID: int
+  +Name: string
+  +ScientificName: string
+  +Validate(): error
+}
+
+class Forecast {
+  +ID: int
+  +FieldID: int
+  +PestID: int
+  +Probability: float64
+  +Recommendation: string
+  +CreatedAt: time.Time
+  +IsHighRisk(): bool
+}
+
+class WeatherParameter {
+  +ID: int
+  +ParamID: int
+  +Name: string
+  +Unit: string
+  +Description: string
+  +Label(): string
+}
+
+class WeatherStation {
+  +ID: int
+  +ExternalID: int
+  +Name: string
+  +Region: string
+  +Active: bool
+  +LastSeen: *time.Time
+  +CreatedAt: time.Time
+  +Activate()
+  +Deactivate()
+}
+
+class WeatherStationParameter {
+  +ID: int
+  +StationID: int
+  +WeatherParameterID: int
+  +StationParam: int
+  +MapParameter(): string
+}
+
+class WeatherObservation {
+  +ID: int64
+  +StationID: int
+  +WeatherParameterID: int
+  +StationParam: int
+  +Value: float64
+  +RecordedAt: time.Time
+  +CreatedAt: time.Time
+  +Age(): time.Duration
+}
+
+enum SensorStatus {
+  +StatusActive
+  +StatusInactive
+  +StatusError
+  +StatusTesting
+  +IsValid(): error
+}
+
+Crop "1" -- "*" Field : contains
+Field "1" -- "*" Sensor : has
+Sensor "1" -- "*" Metric : records
+Field "1" -- "*" Forecast : predicts
+Pest "1" -- "*" Forecast : relates
+
+WeatherStation "1" -- "*" WeatherStationParameter : defines
+WeatherParameter "1" -- "*" WeatherStationParameter : used_in
+WeatherStation "1" -- "*" WeatherObservation : observes
+WeatherParameter "1" -- "*" WeatherObservation : measures
+
+@enduml

@@ -1,0 +1,17 @@
+@startuml WeatherAPIDataIngestion
+skinparam monochrome true
+
+title Сценарій 1: Інтеграція Weather API -> Трансформація -> PostgreSQL
+
+object "Weather API Client" as WeatherAPIClient
+object "Weather API Service" as WeatherService
+object "Transformation Component" as Transformer
+object "PostgreSQL" as Postgres
+
+WeatherAPIClient -> WeatherService : 1: Запит даних погоди
+WeatherService --> WeatherAPIClient : 2: Отримати сирі дані
+WeatherAPIClient -> Transformer : 3: Передати сирі часові ряди
+Transformer -> Postgres : 4: Зберегти нормалізовані дані
+Postgres --> Transformer : 5: Підтвердження збереження
+
+@enduml

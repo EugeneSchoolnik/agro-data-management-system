@@ -1,0 +1,36 @@
+@startuml ActivityDiagram
+' PlantUML activity diagram for data collection + weather integration + ML decision
+skinparam monochrome true
+
+title Activity: Data collection → ML decision → Alert/Logging
+
+|Go Backend|
+start
+:Trigger data collection;
+
+partition "Data Sources" {
+  fork
+    :Read sensor metrics;
+  fork again
+    :Request weather forecast (external API);
+  end fork
+}
+
+:Merge sensor and weather features;
+:Preprocess data (filter noise, normalize, enrich);
+
+partition "ML Service" {
+  :Send features to ML model (MLP);
+  :Receive probability P;
+}
+
+if (P > 0.7) then (high risk)
+  :Create urgent alert;
+  :Notify stakeholders (email/WEBHOOK/SMS);
+  -> Log alert to DB;
+else (monitor)
+  :Store monitoring entry in DB;
+endif
+
+stop
+@enduml

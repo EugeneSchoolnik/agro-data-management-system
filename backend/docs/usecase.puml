@@ -1,0 +1,26 @@
+@startuml UseCaseDiagram
+' PlantUML use case diagram for Agro Data Management System
+skinparam monochrome true
+
+title Діаграма варіантів використання
+
+actor "Агроном" as Agronomist
+actor "Зовнішня Weather API" as WeatherAPI
+
+rectangle "Система управління агроданими" {
+  usecase "Переглянути дані з датчиків" as UC1
+  usecase "Отримати прогноз шкідників" as UC2
+  usecase "Управляти полями та культурами" as UC3
+  usecase "Отримувати прогноз погоди" as UC4
+  usecase "Отримати сповіщення про ризики" as UC5
+}
+
+Agronomist --> UC1
+Agronomist --> UC2
+Agronomist --> UC3
+Agronomist --> UC5
+WeatherAPI --> UC4
+UC4 .down.> UC2 : <<include>>
+UC2 .down.> UC5 : <<include>>
+
+@enduml

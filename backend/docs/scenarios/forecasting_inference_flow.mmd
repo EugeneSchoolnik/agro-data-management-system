@@ -1,0 +1,13 @@
+flowchart LR
+  A["Data Aggregation Service"]
+  B["Forecasting Engine (Python)"]
+  C["ML Inference Model"]
+  D["Forecast Results DB"]
+  E["Analytics Service"]
+
+  A -->|1: Передати інтегрований масив даних| B
+  B -->|2: Виконати інференс| C
+  C -->|3: Прогноз + ризики шкідників| B
+  B -->|4: Зберегти результат прогнозу| D
+  D -->|5: Підтвердження збереження| B
+  B -->|6: Повідомити про готовий прогноз| E
