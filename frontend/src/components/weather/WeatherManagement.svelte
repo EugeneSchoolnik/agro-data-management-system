@@ -3,8 +3,13 @@
   import type {
     WeatherStation,
     WeatherStationSummary,
+    WeatherForecastResult,
   } from "../../types/models";
-  import { getWeatherStations, getWeatherStationSummary } from "../../lib/api";
+  import {
+    getWeatherStations,
+    getWeatherStationSummary,
+    predictWeatherForecast,
+  } from "../../lib/api";
   import Button from "../common/Button.svelte";
   import TrendChart from "../charts/TrendChart.svelte";
 
@@ -15,6 +20,11 @@
   let loadingSummary = false;
   let stationsError = "";
   let summaryError = "";
+
+  // Weather Forecast states
+  let forecasts: Record<number, WeatherForecastResult> = {};
+  let loadingForecasts = false;
+  let forecastError = "";
 
   async function loadStations(): Promise<void> {
     loadingStations = true;
@@ -27,6 +37,7 @@
       if (stations.length > 0) {
         selectedStation = stations[0];
         await loadStationSummary();
+        await loadForecasts();
       }
     } catch (err) {
       stationsError =
@@ -62,11 +73,42 @@
     }
   }
 
+  async function loadForecasts(): Promise<void> {
+    forecastError = "";
+    forecasts = {};
+    if (!selectedStation) {
+      return;
+    }
+
+    loadingForecasts = true;
+    try {
+      const results = await Promise.all([
+        predictWeatherForecast(selectedStation.id, 3),
+        predictWeatherForecast(selectedStation.id, 6),
+        predictWeatherForecast(selectedStation.id, 12),
+      ]);
+
+      results.forEach((result) => {
+        forecasts[result.hours_ahead] = result;
+      });
+      forecasts = forecasts; // Trigger reactivity
+    } catch (err) {
+      forecastError =
+        err instanceof Error
+          ? err.message
+          : "Не вдалося завантажити прогноз погоди";
+      console.error("Failed to load weather forecast:", err);
+    } finally {
+      loadingForecasts = false;
+    }
+  }
+
   function selectStation(event: Event): void {
     const value = Number((event.target as HTMLSelectElement).value);
     selectedStation = stations.find((s) => s.external_id === value) ?? null;
     if (selectedStation) {
       loadStationSummary();
+      loadForecasts();
     }
   }
 
@@ -145,6 +187,54 @@
                 </div>
               </div>
             {/each}
+          </div>
+
+          <div class="weather-forecast">
+            <h3>Прогноз температури</h3>
+            {#if loadingForecasts}
+              <p>Завантаження прогнозу...</p>
+            {:else if forecastError}
+              <p class="error">{forecastError}</p>
+            {:else if Object.keys(forecasts).length === 0}
+              <p>Прогноз недоступний.</p>
+            {:else}
+              <div class="forecast-grid">
+                {#each [3, 6, 12] as hours}
+                  {#if forecasts[hours]}
+                    {@const forecast = forecasts[hours]}
+                    {@const tempColor =
+                      forecast.temperature < 0
+                        ? "#0066ff"
+                        : forecast.temperature < 10
+                          ? "#3399ff"
+                          : forecast.temperature < 20
+                            ? "#66cc33"
+                            : forecast.temperature < 30
+                              ? "#ff9900"
+                              : "#ff3333"}
+                    <div class="forecast-card">
+                      <div class="forecast-header">
+                        <span class="forecast-hours">{hours}h</span>
+                        <span class="forecast-time">
+                          {new Date(
+                            Date.now() + hours * 3600 * 1000,
+                          ).toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                      </div>
+                      <div class="forecast-temp" style="color: {tempColor}">
+                        {forecast.temperature.toFixed(1)}°C
+                      </div>
+                      <p class="forecast-recommendation">
+                        {forecast.recommendation}
+                      </p>
+                    </div>
+                  {/if}
+                {/each}
+              </div>
+            {/if}
           </div>
 
           <div class="weather-aggregates">
@@ -371,5 +461,71 @@
     padding: 1rem;
     border-radius: 0.85rem;
     border: 1px solid #f5c2c7;
+  }
+
+  .weather-forecast {
+    margin-top: 1.5rem;
+  }
+
+  .weather-forecast h3 {
+    margin-top: 0;
+    color: #2f561c;
+  }
+
+  .forecast-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .forecast-card {
+    padding: 1.25rem;
+    border-radius: 1rem;
+    background: linear-gradient(135deg, #f5faf0 0%, #fffef8 100%);
+    border: 2px solid rgba(110, 138, 73, 0.2);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  }
+
+  .forecast-card:hover {
+    border-color: rgba(110, 138, 73, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  .forecast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid rgba(110, 138, 73, 0.15);
+  }
+
+  .forecast-hours {
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #2f561c;
+  }
+
+  .forecast-time {
+    font-size: 0.9rem;
+    color: #5e6f4d;
+  }
+
+  .forecast-temp {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    text-align: center;
+  }
+
+  .forecast-recommendation {
+    margin: 1rem 0 0 0;
+    font-size: 0.9rem;
+    color: #3b4b32;
+    line-height: 1.4;
+    font-style: italic;
   }
 </style>

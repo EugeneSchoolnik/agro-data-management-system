@@ -101,6 +101,12 @@ export interface WeatherStationSummary {
   updated_at: string;
 }
 
+export interface WeatherForecastResult {
+  temperature: number;
+  hours_ahead: number;
+  recommendation: string;
+}
+
 export interface WeatherStation {
   id: number;
   external_id: number;

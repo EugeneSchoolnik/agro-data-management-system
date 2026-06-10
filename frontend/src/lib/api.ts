@@ -8,6 +8,7 @@ import type {
   WeatherObservation,
   WeatherStation,
   WeatherStationSummary,
+  WeatherForecastResult,
   ApiResponse,
   FieldForm,
   FieldReport,
@@ -157,6 +158,12 @@ export const getWeatherStationObservations = (externalId: number) =>
   apiRequest<WeatherObservation[]>(
     `/weather/stations/${externalId}/observations`,
   );
+
+export const predictWeatherForecast = (stationId: number, hoursAhead: number) =>
+  apiRequest<WeatherForecastResult>("/weather/forecast/predict", {
+    method: "POST",
+    body: JSON.stringify({ station_id: stationId, hours_ahead: hoursAhead }),
+  });
 
 // Sensors
 export const getSensor = (id: number) => apiRequest<Sensor>(`/sensors/${id}`);
