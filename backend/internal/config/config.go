@@ -30,12 +30,12 @@ type HTTPServer struct {
 }
 
 type DBConfig struct {
-	Host     string `yaml:"host" env-required:"true"`
+	Host     string `yaml:"host" env:"DB_HOST" env-required:"true"`
 	Port     int    `yaml:"port" env:"DB_PORT" env-default:"5432"`
 	User     string `yaml:"user" env:"DB_USER" env-required:"true"`
 	Password string `yaml:"pass" env:"DB_PASSWORD" env-required:"true"`
 	Name     string `yaml:"name" env:"DB_NAME" env-required:"true"`
-	SSLMode  string `yaml:"ssl_mode" env-default:"disable"`
+	SSLMode  string `yaml:"ssl_mode" env:"DB_SSL_MODE" env-default:"disable"`
 }
 
 type TestDatabase struct {
