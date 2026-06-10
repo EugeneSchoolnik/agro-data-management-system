@@ -20,6 +20,8 @@ type WeatherRepository interface {
 	CreateObservation(obs models.WeatherObservation) (models.WeatherObservation, error)
 	GetLatestObservationsByStation(stationID int) ([]models.WeatherObservation, error)
 	GetObservationsByStationAndRecordedAtRange(stationID int, start, end time.Time) ([]models.WeatherObservation, error)
+	GetLatestObservationByParameterID(stationID int, paramID int) (models.WeatherObservation, error)
+	GetObservationsByParameterIDs(stationID int, paramIDs []int) ([]models.WeatherObservation, error)
 }
 
 type WeatherPostgres struct {
@@ -112,5 +114,32 @@ func (r *WeatherPostgres) GetObservationsByStationAndRecordedAtRange(stationID i
 	var observations []models.WeatherObservation
 	query := `SELECT * FROM weather_observations WHERE station_id = $1 AND recorded_at >= $2 AND recorded_at <= $3 ORDER BY recorded_at ASC`
 	err := r.db.Select(&observations, query, stationID, start, end)
+	return observations, err
+}
+
+// GetLatestObservationByParameterID — отримати останнє спостереження за конкретним параметром
+func (r *WeatherPostgres) GetLatestObservationByParameterID(stationID int, paramID int) (models.WeatherObservation, error) {
+	var observation models.WeatherObservation
+	query := `
+		SELECT wo.* FROM weather_observations wo
+		INNER JOIN weather_parameters wp ON wo.weather_parameter_id = wp.id
+		WHERE wo.station_id = $1 AND wp.param_id = $2
+		ORDER BY wo.recorded_at DESC
+		LIMIT 1
+	`
+	err := r.db.Get(&observation, query, stationID, paramID)
+	return observation, err
+}
+
+// GetObservationsByParameterIDs — отримати останні спостереження за кількома параметрами
+func (r *WeatherPostgres) GetObservationsByParameterIDs(stationID int, paramIDs []int) ([]models.WeatherObservation, error) {
+	var observations []models.WeatherObservation
+	query := `
+		SELECT DISTINCT ON (wp.param_id) wo.* FROM weather_observations wo
+		INNER JOIN weather_parameters wp ON wo.weather_parameter_id = wp.id
+		WHERE wo.station_id = $1 AND wp.param_id = ANY($2)
+		ORDER BY wp.param_id, wo.recorded_at DESC
+	`
+	err := r.db.Select(&observations, query, stationID, paramIDs)
 	return observations, err
 }

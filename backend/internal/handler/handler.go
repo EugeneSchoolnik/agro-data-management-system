@@ -113,6 +113,7 @@ func (h *Handler) InitRoutes() *gin.Engine {
 			weather.GET("/stations/:external_id/summary", h.getWeatherStationSummary)
 			weather.POST("/sync/station/:external_id", h.syncWeatherStation)
 			weather.POST("/sync/field/:field_id", h.syncWeatherField)
+			weather.POST("/forecast/predict", h.predictWeatherForecast)
 		}
 
 		pests := api.Group("/pests")

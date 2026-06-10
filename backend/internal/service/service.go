@@ -9,15 +9,16 @@ import (
 
 // Services — це головна структура, яка містить усі інтерфейси сервісів
 type Services struct {
-	Crop     CropService
-	Field    FieldService
-	Sensor   SensorService
-	Metric   MetricService
-	Pest     PestService
-	Forecast ForecastService
-	Weather  WeatherService
-	Report   ReportService
-	User     UserService
+	Crop             CropService
+	Field            FieldService
+	Sensor           SensorService
+	Metric           MetricService
+	Pest             PestService
+	Forecast         ForecastService
+	Weather          WeatherService
+	WeatherForecast  WeatherForecastService
+	Report           ReportService
+	User             UserService
 }
 
 // Dependencies — допоміжна структура для ініціалізації
@@ -40,6 +41,7 @@ func NewServices(deps Dependencies) *Services {
 	metricSrv := NewMetricService(deps.Repos.Metric, deps.Repos.Sensor, deps.Log)
 	weatherAPIClient := weatherapi.NewClient(deps.WeatherAPIURL, deps.WeatherAPILogin, deps.WeatherAPIPassword)
 	weatherSrv := NewWeatherService(deps.Repos.Weather, weatherAPIClient, deps.Log)
+	weatherForecastSrv := NewWeatherForecastService(deps.Repos.Weather, deps.AiURL, deps.Log)
 
 	reportSrv := NewReportService(deps.Repos.Field, deps.Repos.Metric, deps.Repos.Forecast, deps.Log)
 
@@ -56,14 +58,15 @@ func NewServices(deps Dependencies) *Services {
 	userSrv := NewUserService(deps.Repos.User, deps.Log)
 
 	return &Services{
-		Crop:     cropSrv,
-		Field:    fieldSrv,
-		Sensor:   sensorSrv,
-		Metric:   metricSrv,
-		Pest:     pestSrv,
-		Forecast: forecastSrv,
-		Weather:  weatherSrv,
-		Report:   reportSrv,
-		User:     userSrv,
+		Crop:            cropSrv,
+		Field:           fieldSrv,
+		Sensor:          sensorSrv,
+		Metric:          metricSrv,
+		Pest:            pestSrv,
+		Forecast:        forecastSrv,
+		Weather:         weatherSrv,
+		WeatherForecast: weatherForecastSrv,
+		Report:          reportSrv,
+		User:            userSrv,
 	}
 }
