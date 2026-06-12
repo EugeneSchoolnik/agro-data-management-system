@@ -48,7 +48,7 @@ type TestDatabase struct {
 }
 
 type AIConfig struct {
-	PythonServiceURL string `yaml:"python_service_url"`
+	PythonServiceURL string `yaml:"python_service_url" env:"PYTHON_SERVICE_URL"`
 	APIKey           string `yaml:"api_key" env:"AI_API_KEY"`
 }
 
