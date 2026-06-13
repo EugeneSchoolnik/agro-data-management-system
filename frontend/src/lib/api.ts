@@ -18,7 +18,9 @@ import type {
 import { get } from "svelte/store";
 import { authStore, clearAuth } from "../stores/auth";
 
-const API_BASE = "http://localhost:8080/api/v1";
+// const API_BASE = "http://localhost:8080/api/v1";
+// const API_BASE = "https://agro-data-management-system.onrender.com/api/v1";
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 interface RequestOptions extends RequestInit {
   headers?: Record<string, string>;
